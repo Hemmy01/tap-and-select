@@ -27,7 +27,7 @@ Architecture diagrams: [`docs/architecture.md`](docs/architecture.md).
 | Bus driver | `/bus` | phone in the bus (needs HTTPS for GPS) |
 | Live board | `/live` | the audience's phones, via the QR code on the pitch; public and read-only |
 | Users | `/admin/users` | admins: roles and drivers' buses |
-| Pitch | `/pitch` | the presentation (13 slides) |
+| Pitch | `/pitch` | the presentation (7 slides, printable) |
 | About | `/about` | judges; printable |
 
 ---
@@ -229,8 +229,8 @@ rate (cancelled today ÷ tickets issued or cancelled today).
 **Live board (`/live`).** A public, read-only page for the audience: departures, queue counts per
 destination, **Now boarding** and the map, refreshed every 5 seconds through `live_board()`, the only
 function the anon key may call (it returns counts and bus positions, never card ids). It is not listed
-on the home page; people reach it from the QR code on pitch slides 9 and 13
-(`apps/web/public/pitch/live-qr.svg`) or the About page. Regenerate the QR code if the URL changes:
+on the home page; people reach it from its QR code (`apps/web/public/pitch/live-qr.svg`) or the
+About page. Regenerate the QR code if the URL changes:
 `npx qrcode@1.5.4 -t svg -e M -q 2 -d 111418 -l ffffff -o apps/web/public/pitch/live-qr.svg "<url>/live"`.
 
 **Simulate drive (presentation aid).** On the dashboard, a released bus has **Simulate drive**: it
@@ -401,13 +401,20 @@ The `https://` address is required for Web Serial on the kiosk and GPS on the ph
 
 ## Pitch
 
-`/pitch` is the presentation: 13 slides (← → to move, **F** fullscreen, **N** speaker notes).
-Problem with cited facts, the justification paragraph (topic, development, evidence, summary),
-the solution, a five-panel comic of how a passenger uses it, what is real, estimated, simulated or
-not built, on-device recognition, a six-panel storyboard of the whole idea right before the live
-demo, the roadmap, the conclusion and references. The drawings are inline SVG in
-`apps/web/components/pitch/` (`JourneyComic.tsx`, `IdeaStoryboard.tsx`); text lives in
-`content.tsx`. `/about` is the printable version with the full feature ranking.
+`/pitch` is the presentation, sized for a 7-minute pitch plus demo: hook, problem, gaps, solution,
+the five-panel "How it works" comic, results and conclusion (← → or Space to move, **F**
+fullscreen). The six slides are in Times New Roman; each cites only its own sources at the foot.
+Slides live in `apps/web/components/pitch/slides.tsx`, the comic in `JourneyComic.tsx`, the
+renumbered sources in `content.tsx` (`PITCH_REFERENCES`).
+
+**Numbers to fill in:** `apps/web/content/pitch.json`. A `null` shows as "—" on the results slide;
+never put a guess there.
+
+**Print / PDF:** `/pitch?print=1`, or Cmd/Ctrl+P on the deck, gives one slide per A4 landscape page
+on white, then a page with the full IEEE reference list. In Chrome's print dialog keep
+**Background graphics** on.
+
+`/about` is the longer printable version with the full feature ranking and its own references.
 
 ## Demo and rehearsal
 

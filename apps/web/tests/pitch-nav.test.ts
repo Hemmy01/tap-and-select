@@ -20,7 +20,7 @@ describe("pitch navigation", () => {
     expect(actionForKey("ArrowLeft", 1, 14)).toEqual({ type: "go", slide: 1 });
     expect(actionForKey("Home", 7, 14)).toEqual({ type: "go", slide: 1 });
     expect(actionForKey("End", 7, 14)).toEqual({ type: "go", slide: 14 });
-    expect(actionForKey("n", 7, 14)).toEqual({ type: "toggle-notes" });
+    expect(actionForKey("n", 7, 14)).toBeNull();
     expect(actionForKey("F", 7, 14)).toEqual({ type: "fullscreen" });
     expect(actionForKey("x", 7, 14)).toBeNull();
   });

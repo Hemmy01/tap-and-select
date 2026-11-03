@@ -5,10 +5,7 @@ export type PitchSection = "Problem" | "Solution" | "Tech" | "Conclusion";
 
 export const PITCH_SECTIONS: readonly PitchSection[] = ["Problem", "Solution", "Tech", "Conclusion"];
 
-export type DeckAction =
-  | { type: "go"; slide: number }
-  | { type: "toggle-notes" }
-  | { type: "fullscreen" };
+export type DeckAction = { type: "go"; slide: number } | { type: "fullscreen" };
 
 /** Clamp a slide number into 1..count. */
 export function clampSlide(slide: number, count: number): number {
@@ -36,9 +33,6 @@ export function actionForKey(key: string, current: number, count: number): DeckA
       return { type: "go", slide: 1 };
     case "End":
       return { type: "go", slide: count };
-    case "n":
-    case "N":
-      return { type: "toggle-notes" };
     case "f":
     case "F":
       return { type: "fullscreen" };

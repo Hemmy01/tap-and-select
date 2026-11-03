@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useSyncExternalStore, type ReactNode } from "react";
 import { actionForKey, progressSegments, slideFromHash } from "@/lib/pitch-nav";
-import { SLIDES } from "./slides";
+import { REFERENCES_PAGE, SLIDES } from "./slides";
 
 const W = 1280;
 const H = 720;
@@ -49,24 +49,47 @@ function ProgressBar({ slide }: { slide: number }) {
   );
 }
 
-/** Every slide on its own page, for "Save as PDF" (/pitch?print=1). */
+// One slide per A4 landscape page, white, colours kept. The 1280×720 canvas is
+// scaled to the page width (297 mm = 1123 px at 96 dpi) and centred.
+const PRINT_SCALE = 1123 / W;
+const PRINT_CSS = `
+@page { size: A4 landscape; margin: 0 }
+@media print {
+  html, body { background: #fff }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact }
+}`;
+
+function PrintPage({ label, number, children }: { label: string; number?: number; children: ReactNode }) {
+  return (
+    <section
+      className="flex items-center justify-center overflow-hidden bg-white [break-after:page]"
+      style={{ width: "297mm", height: "209.5mm" }}
+      aria-label={label}
+    >
+      <div style={{ width: W * PRINT_SCALE, height: H * PRINT_SCALE }}>
+        <div className="relative bg-white" style={{ width: W, height: H, transform: `scale(${PRINT_SCALE})`, transformOrigin: "top left" }}>
+          {children}
+          {number ? (
+            <span className="num absolute right-16 bottom-5 text-[16px] text-muted">
+              {String(number).padStart(2, "0")} / {COUNT}
+            </span>
+          ) : null}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** Every slide, then the full reference list: /pitch?print=1 or the browser's Print. */
 function PrintDeck() {
   return (
-    <div className="bg-paper">
-      <style>{`@page { size: ${W}px ${H}px; margin: 0 } body { background: var(--paper) }`}</style>
+    <div className="bg-white">
       {SLIDES.map((slide, i) => (
-        <section
-          key={slide.title}
-          className="relative overflow-hidden bg-paper [break-after:page]"
-          style={{ width: W, height: H }}
-          aria-label={`Slide ${i + 1}: ${slide.title}`}
-        >
+        <PrintPage key={slide.title} label={`Slide ${i + 1}: ${slide.title}`} number={i + 1}>
           {slide.body}
-          <span className="num absolute right-16 bottom-5 text-[16px] text-muted">
-            {String(i + 1).padStart(2, "0")} / {COUNT}
-          </span>
-        </section>
+        </PrintPage>
       ))}
+      <PrintPage label={REFERENCES_PAGE.title}>{REFERENCES_PAGE.body}</PrintPage>
     </div>
   );
 }
@@ -78,7 +101,6 @@ function Presenter() {
     () => slideFromHash(window.location.hash, COUNT),
     () => 1,
   );
-  const [notesOpen, setNotesOpen] = useState(false);
 
   const go = useCallback((n: number) => {
     // replaceState keeps Back for leaving the deck; dispatch so the hash store updates.
@@ -93,7 +115,6 @@ function Presenter() {
       if (!action) return;
       e.preventDefault();
       if (action.type === "go") go(action.slide);
-      else if (action.type === "toggle-notes") setNotesOpen((open) => !open);
       else if (document.fullscreenElement) void document.exitFullscreen();
       else void document.documentElement.requestFullscreen().catch(() => {});
     };
@@ -123,23 +144,7 @@ function Presenter() {
         <span className="num absolute right-16 bottom-5 text-[16px] text-muted">
           {String(slide).padStart(2, "0")} / {COUNT}
         </span>
-        <span className="absolute bottom-5 left-16 text-[14px] text-muted">← → move · F fullscreen · N notes</span>
-
-        {notesOpen ? (
-          <aside
-            className="absolute inset-x-0 bottom-0 z-20 border-t-2 border-ink bg-surface px-16 py-6"
-            aria-label="Speaker notes"
-          >
-            <p className="text-[16px] font-semibold uppercase tracking-[0.12em] text-muted">
-              Speaker notes · {current.speaker}
-            </p>
-            <ul className="mt-2 list-disc space-y-1 pl-6 text-[22px] leading-snug">
-              {current.notes.map((note) => (
-                <li key={note}>{note}</li>
-              ))}
-            </ul>
-          </aside>
-        ) : null}
+        <span className="absolute bottom-5 left-16 text-[14px] text-muted">← → move · F fullscreen</span>
       </div>
 
       <nav className="sr-only" aria-label="Slides">
@@ -160,5 +165,18 @@ export function PitchDeck() {
     () => new URLSearchParams(window.location.search).get("print") === "1",
     () => false,
   );
-  return print ? <PrintDeck /> : <Presenter />;
+  // The print pages are always in the document, so Cmd/Ctrl+P on the presenter prints them too.
+  return (
+    <>
+      <style>{PRINT_CSS}</style>
+      {print ? null : (
+        <div className="print:hidden">
+          <Presenter />
+        </div>
+      )}
+      <div className={print ? undefined : "hidden print:block"}>
+        <PrintDeck />
+      </div>
+    </>
+  );
 }

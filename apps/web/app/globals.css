@@ -156,6 +156,14 @@
   }
 }
 
+/* /pitch slides (not the comic): Times New Roman, as the course asks. Unlayered,
+   so it wins over the heading and .num fonts. */
+.pitch-serif,
+.pitch-serif * {
+  font-family: "Times New Roman", Times, serif;
+  letter-spacing: 0;
+}
+
 /* Dashboard map: greyed OpenStreetMap tiles so only route colours stand out. */
 .map-tiles-muted {
   filter: grayscale(1) contrast(0.9) brightness(1.06);
