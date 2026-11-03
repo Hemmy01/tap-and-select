@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useSyncExternalStore, type ReactNode } from "react";
 import { actionForKey, progressSegments, slideFromHash } from "@/lib/pitch-nav";
-import { REFERENCES_PAGE, SLIDES } from "./slides";
+import { SLIDES } from "./slides";
 
 const W = 1280;
 const H = 720;
@@ -80,7 +80,7 @@ function PrintPage({ label, number, children }: { label: string; number?: number
   );
 }
 
-/** Every slide, then the full reference list: /pitch?print=1 or the browser's Print. */
+/** Every slide, one per page: /pitch?print=1 or the browser's Print. */
 function PrintDeck() {
   return (
     <div className="bg-white">
@@ -89,7 +89,6 @@ function PrintDeck() {
           {slide.body}
         </PrintPage>
       ))}
-      <PrintPage label={REFERENCES_PAGE.title}>{REFERENCES_PAGE.body}</PrintPage>
     </div>
   );
 }

@@ -1,16 +1,17 @@
-// The pitch as one story: Jack waits (hook), why (problem, gaps), the fix (solution,
-// how it works), proof (demo, results), Jack boards (conclusion). Story slides are in
-// Times New Roman; the "How it works" comic is kept exactly as it was. Each slide
-// renders into a fixed 1280×720 canvas that the deck scales to the screen.
+// The pitch as one story in plain words: Jack waits (hook), why (problem, gaps), the
+// fix (solution, how it works), proof (demo, results), Jack boards (conclusion), then
+// the sources. Story slides are in Times New Roman; the "How it works" comic panels
+// are kept as they were. Each slide renders into a fixed 1280×720 canvas.
 
 import Image from "next/image";
 import type { ReactNode } from "react";
 import { IdeaStoryboard } from "./IdeaStoryboard";
 import { JourneyComic } from "./JourneyComic";
 import { JackBoards, JackWaits, NobodySeesJack } from "./StoryPanels";
+import { formatAccuracy, headlineAccuracy, MODELS } from "@/lib/models";
 import { PITCH_SECTIONS, type PitchSection } from "@/lib/pitch-nav";
-import { PITCH_NUMBERS as N, pitchValue } from "@/lib/pitch";
-import { PITCH_REFERENCES, ReferenceLine, referenceYear, TEAM, WHAT_RUNS_WHERE } from "./content";
+import { PITCH_NUMBERS as N, pitchPercent, pitchValue } from "@/lib/pitch";
+import { PITCH_REFERENCES, ReferenceLine, referenceYear, TEAM } from "./content";
 
 export interface Slide {
   title: string;
@@ -18,7 +19,7 @@ export interface Slide {
 }
 
 // ---------------------------------------------------------------------------
-// Story slides: the title is the line you say, one visual, cited sources at the foot.
+// Story slides: the title is the line you say, one visual, sources shown.
 // ---------------------------------------------------------------------------
 
 /** In-text citation, e.g. [1] or [1], [2]. */
@@ -27,7 +28,7 @@ function Ref({ n }: { n: number | readonly number[] }) {
   return <span className="ml-1 align-baseline text-[18px] font-normal not-italic text-muted">[{list.join("], [")}]</span>;
 }
 
-/** Only the sources cited on this slide, short form (the full list is printed last). */
+/** Only the sources cited on this slide, short form (the full list is the last slide). */
 function SlideReferences({ ns }: { ns: readonly number[] }) {
   return (
     <p className="mt-4 border-t border-line pt-2 text-[18px] leading-snug text-muted">
@@ -60,11 +61,13 @@ function Panel({ label, children }: { label?: string; children: ReactNode }) {
   );
 }
 
-function Tile({ value, children, className = "" }: { value: ReactNode; children: ReactNode; className?: string }) {
+/** A big number, what it means in plain words, and where it comes from. */
+function Stat({ value, source, children }: { value: ReactNode; source: ReactNode; children: ReactNode }) {
   return (
-    <div className={`rounded-card border border-line bg-surface p-5 ${className}`}>
+    <div className="flex flex-col rounded-card border border-line bg-surface p-5">
       <span className="block text-[52px] font-bold leading-none tabular-nums">{value}</span>
-      <span className="mt-3 block text-[24px] leading-snug">{children}</span>
+      <span className="mt-3 block flex-1 text-[24px] leading-snug">{children}</span>
+      <span className="mt-4 block border-t border-line pt-2 text-[18px] leading-snug text-muted">Source: {source}</span>
     </div>
   );
 }
@@ -87,51 +90,60 @@ const GAPS: readonly { gap: ReactNode; fix: string }[] = [
   {
     gap: (
       <>
-        Schedules don&rsquo;t follow demand: off-peak buses leave nearly empty
+        Buses leave on a timetable, even nearly empty
         <Ref n={6} />
       </>
     ),
-    fix: "Live demand at every stop",
+    fix: "Count who is waiting at every stop",
   },
   {
     gap: (
       <>
-        Tap&amp;Go only sees you once you&rsquo;re on the bus
+        Bus cards only record you when you tap in on the bus
         <Ref n={7} />
       </>
     ),
-    fix: "Demand registered at the stop",
+    fix: "Count you while you wait",
   },
   {
     gap: (
       <>
-        Empty card = missed bus; no cash option
+        No money on your card? No cash allowed
         <Ref n={5} />
       </>
     ),
-    fix: "Balance check while waiting",
+    fix: "Check your balance while you wait",
   },
   {
     gap: (
       <>
-        No conductor: missed stops, no alerts
+        No conductor to call out the stops
         <Ref n={8} />
       </>
     ),
-    fix: "Driver sees who gets off next",
+    fix: "Tell the driver who gets off next",
   },
 ];
 
-const SUMMARY = [
-  { label: "Problem", text: "Demand grows faster than buses, and nobody sees who is waiting." },
-  { label: "Solution", text: "Every bus stop becomes as visible as a bus park." },
-  { label: "Next", text: "A pilot at 2–3 stops on one route, real card readers, more Kinyarwanda voices." },
+/** The comic's bottom row, in plain words. */
+const WHO_DOES_WHAT = [
+  { place: "The small board", what: "Hears the stop's name or reads the swipe. No internet needed." },
+  { place: "The stop's screen", what: "Shows the ticket and when the bus comes." },
+  { place: "The internet", what: "Tells the control room and the driver." },
 ] as const;
 
-const DEMO_STEPS = ["Tap card", "Say “Remera” or swipe", "Confirm", "Ticket", "HQ approves", "Bus drives", "Now boarding"];
+const SUMMARY = [
+  { label: "Problem", text: "More people need buses, and nobody can see who is waiting." },
+  { label: "Solution", text: "Every bus stop tells the control room who is waiting." },
+  { label: "Next", text: "Test it at 2–3 real stops, add real card readers, teach it more voices." },
+] as const;
+
+const DEMO_STEPS = ["Tap card", "Say “Remera” or swipe", "Confirm", "Get a ticket", "Control room sends a bus", "Bus arrives"];
+
+const voice = headlineAccuracy(MODELS.voice);
 
 // ---------------------------------------------------------------------------
-// The "How it works" comic slide, unchanged from the previous deck.
+// The "How it works" comic slide.
 // ---------------------------------------------------------------------------
 
 /** "Problem · Solution · Tech · Conclusion", the current part marked in ink. */
@@ -164,61 +176,58 @@ function Frame({ section, title, children }: { section: PitchSection; title: Rea
 }
 
 export const SLIDES: readonly Slide[] = [
-  // 1 Hook: meet Jack --------------------------------------------------------
+  // 1 Hook: a question, then Jack ---------------------------------------------
   {
-    title: "Meet Jack",
+    title: "Hook",
     body: (
-      <SerifSlide title="Leaves work at 6 PM. Home after 9 PM." refs={[1]}>
+      <SerifSlide title="How long did you wait for a bus this week?">
         <div className="grid grid-cols-[520px_1fr] items-center gap-8">
           <Panel>
             <JackWaits />
           </Panel>
-          <blockquote className="border-l-4 border-ink pl-6">
-            <p className="text-[30px] italic leading-snug">
-              &ldquo;I finish work at 6PM and immediately head to a bus stop, but I reach home after 9PM.&rdquo;
-              <Ref n={1} />
-            </p>
-            <footer className="mt-3 text-[22px] text-muted">Jack Nsanzimana, Kanombe, Kigali (KT Press, 2022)</footer>
-          </blockquote>
+          <div>
+            <p className="text-[34px] font-bold leading-snug">For Jack, getting home takes more than three hours.</p>
+            <blockquote className="mt-4 border-l-4 border-ink pl-5">
+              <p className="text-[26px] italic leading-snug">
+                &ldquo;I finish work at 6PM and immediately head to a bus stop, but I reach home after 9PM.&rdquo;
+              </p>
+              <footer className="mt-2 text-[20px] text-muted">
+                Jack Nsanzimana, Kanombe, speaking to KT Press, 2022
+                <Ref n={1} />
+              </footer>
+            </blockquote>
+          </div>
         </div>
-        <p className="mt-6 text-[44px] font-bold leading-tight">The bus doesn&rsquo;t know Jack is waiting.</p>
-        <p className="mt-auto text-[20px] text-muted">
-          Tap&amp;Select · CMU-Africa Bridge Program 2026 · {TEAM.join(", ")}
-        </p>
+        <p className="mt-14 text-[48px] font-bold leading-tight">The bus doesn&rsquo;t know Jack is waiting.</p>
       </SerifSlide>
     ),
   },
-  // 2 Problem: Jack isn't alone ----------------------------------------------
+  // 2 Problem: Jack isn't alone -------------------------------------------------
   {
     title: "Jack isn't alone",
     body: (
-      <SerifSlide title="Jack isn’t alone." refs={[1, 2, 3, 4]}>
-        <p className="text-[28px]">Demand is growing faster than the buses.</p>
-        <div className="mt-5 grid grid-cols-4 gap-4">
-          <Tile value="+54%">
-            Kigali&rsquo;s population, 2012 &rarr; 2022 (1.13M &rarr; 1.75M)
-            <Ref n={2} />
-          </Tile>
-          <Tile value="+30%">
-            Bus passengers in one year after the reforms
-            <Ref n={3} />
-          </Tile>
-          <Tile value="Up to 1 hour">
-            Average wait, regulator&rsquo;s figure
-            <Ref n={1} />
-          </Tile>
-          <Tile value="20% → 50%">
-            Public transport&rsquo;s share of trips, today vs target
-            <Ref n={4} />
-          </Tile>
+      <SerifSlide title="Jack isn’t alone.">
+        <div className="grid grid-cols-4 gap-4">
+          <Stat value="+54%" source={<>Rwanda census, via City Population (2023) <Ref n={2} /></>}>
+            more people live in Kigali than 10 years ago (1.13 → 1.75 million)
+          </Stat>
+          <Stat value="+30%" source={<>C. Nyandwi, AllAfrica (2026) <Ref n={3} /></>}>
+            more people ride the bus than last year
+          </Stat>
+          <Stat value="1 hour" source={<>RURA, via KT Press (2022) <Ref n={1} /></>}>
+            is how long the average wait at a stop can be
+          </Stat>
+          <Stat value="1 in 5" source={<>The New Times, AllAfrica (2026) <Ref n={4} /></>}>
+            trips are made by bus today. The city wants 1 in 2.
+          </Stat>
         </div>
-        <p className="mt-8 border-t-2 border-ink pt-4 text-[30px] font-bold">
-          Nobody can see where that demand is waiting.
+        <p className="mt-6 border-t-2 border-ink pt-4 text-[30px] font-bold">
+          More people, more riders, and still nobody sees who is waiting.
         </p>
       </SerifSlide>
     ),
   },
-  // 3 Gaps: why nobody sees Jack ---------------------------------------------
+  // 3 Gaps: why nobody sees Jack -----------------------------------------------
   {
     title: "Why nobody sees Jack",
     body: (
@@ -229,15 +238,15 @@ export const SLIDES: readonly Slide[] = [
               <NobodySeesJack />
             </Panel>
             <p className="mt-3 text-[24px] leading-snug">
-              Generation 2 tracks every bus live
-              <Ref n={5} />. Nobody tracks who is waiting.
+              Since December 2025, every bus is tracked live
+              <Ref n={5} />. The people waiting are not.
             </p>
           </div>
           <table className="w-full self-start border-collapse text-left text-[24px] leading-snug">
             <thead>
               <tr className="border-b-2 border-ink">
-                <th className="py-1.5 pr-5 font-bold">Gap today</th>
-                <th className="w-[38%] py-1.5 font-bold">Tap&amp;Select fix</th>
+                <th className="py-1.5 pr-5 font-bold">The problem today</th>
+                <th className="w-[40%] py-1.5 font-bold">Our fix</th>
               </tr>
             </thead>
             <tbody>
@@ -253,24 +262,26 @@ export const SLIDES: readonly Slide[] = [
       </SerifSlide>
     ),
   },
-  // 4 Solution: imagine Jack's evening with Tap&Select -----------------------
+  // 4 Solution: imagine Jack's evening -----------------------------------------
   {
     title: "Imagine Jack's evening",
     body: (
       <SerifSlide title="Imagine Jack’s evening with Tap&Select">
-        <p className="-mt-2 mb-4 text-[26px]">We bring the bus park to every bus stop: Sense → Decide → Inform.</p>
+        <p className="-mt-2 mb-4 text-[26px]">
+          Jack tells the stop where he is going. The control room sends a bus. Jack sees when it will come.
+        </p>
         <IdeaStoryboard />
       </SerifSlide>
     ),
   },
-  // 5 How it works: the comic, unchanged -------------------------------------
+  // 5 How it works: the comic --------------------------------------------------
   {
     title: "How it works",
     body: (
       <Frame section="Tech" title="How it works">
         <JourneyComic />
         <dl className="mt-8 grid grid-cols-3 divide-x divide-line rounded-card border border-line bg-surface">
-          {WHAT_RUNS_WHERE.map((w) => (
+          {WHO_DOES_WHAT.map((w) => (
             <div key={w.place} className="p-5">
               <dt className="text-[24px] font-semibold font-display">{w.place}</dt>
               <dd className="mt-1 text-[21px] text-muted">{w.what}</dd>
@@ -280,7 +291,7 @@ export const SLIDES: readonly Slide[] = [
       </Frame>
     ),
   },
-  // 6 Live demo --------------------------------------------------------------
+  // 6 Live demo ----------------------------------------------------------------
   {
     title: "Live demo",
     body: (
@@ -304,7 +315,7 @@ export const SLIDES: readonly Slide[] = [
             rel="noreferrer"
             className="flex h-32 flex-col justify-center rounded-card bg-accent px-8 text-paper transition-colors duration-200 ease-out hover:bg-ink"
           >
-            <span className="text-[34px] font-bold">Open kiosk</span>
+            <span className="text-[34px] font-bold">The bus stop</span>
             <span className="text-[22px] opacity-90">/kiosk</span>
           </a>
           <a
@@ -313,45 +324,48 @@ export const SLIDES: readonly Slide[] = [
             rel="noreferrer"
             className="flex h-32 flex-col justify-center rounded-card border-2 border-ink bg-surface px-8 transition-colors duration-200 ease-out hover:bg-paper"
           >
-            <span className="text-[34px] font-bold">HQ dashboard</span>
+            <span className="text-[34px] font-bold">The control room</span>
             <span className="text-[22px] text-muted">/dashboard</span>
           </a>
         </div>
         <div className="mt-10 flex items-center gap-6 rounded-card border-2 border-ink bg-surface px-6 py-3">
           <LiveQr size={140} />
           <p className="text-[28px] font-bold leading-snug">
-            Don&rsquo;t take our word for it. Scan and watch the queue live.
+            Don&rsquo;t take our word for it. Scan and watch the line live.
             <span className="block text-[22px] font-normal text-muted">tap-and-select.vercel.app/live · no sign-in</span>
           </p>
         </div>
       </SerifSlide>
     ),
   },
-  // 7 Results: does it work? -------------------------------------------------
+  // 7 Results: does it work? ---------------------------------------------------
   {
     title: "Does it work?",
     body: (
-      <SerifSlide title="Does it work? What we built and measured" refs={[5, 6]}>
+      <SerifSlide title="Does it work? What we measured">
         <div className="grid grid-cols-3 gap-4">
-          <Tile value={pitchValue(N.voiceAccuracy, "%")}>
-            Voice model accuracy on {pitchValue(N.voiceSamples)} samples, {pitchValue(N.voiceSpeakers)} voices
-          </Tile>
-          <Tile value={`${pitchValue(N.modelRamKb)} KB RAM`}>
-            Runs on the board: {pitchValue(N.modelFlashKb)} KB flash, offline
-          </Tile>
-          <Tile value={`${pitchValue(N.gestureBefore, "%")} → ${pitchValue(N.gestureAfter, "%")}`}>
-            Gesture accuracy, after switching to swipes
-          </Tile>
-          <Tile value={pitchValue(N.surveyGaveUpPct, "%")}>
-            of {pitchValue(N.surveyRespondents)} commuters surveyed gave up waiting last month
-          </Tile>
-          <Tile value={pitchValue(N.audienceJoined)}>of you joined the queue live today</Tile>
+          <Stat value={formatAccuracy(voice.value)} source="our model in Edge Impulse">
+            of stop names understood, on {voice.kind === "test" ? "recordings it never heard" : "our test recordings"} (
+            {pitchValue(N.voiceSamples)} recordings, {pitchValue(N.voiceSpeakers)} voices)
+          </Stat>
+          <Stat value={pitchPercent(N.swipeCorrect, N.swipeTries)} source="our own tests on the board">
+            of hand swipes picked the right stop ({pitchValue(N.swipeCorrect)} of {pitchValue(N.swipeTries)} tries)
+          </Stat>
+          <Stat value={pitchValue(N.modelRamKb, " KB")} source="Edge Impulse">
+            of memory is all the voice model needs, less than one phone photo. No internet needed.
+          </Stat>
+          <Stat value={pitchValue(N.surveyGaveUpPct, "%")} source="our survey">
+            of {pitchValue(N.surveyRespondents)} commuters gave up waiting for a bus last month
+          </Stat>
+          <Stat value={pitchValue(N.audienceJoined)} source="live data from the demo">
+            of you joined the line during the demo
+          </Stat>
           <div className="rounded-card border-2 border-dashed border-warn bg-surface p-5">
             <span className="inline-block rounded-pill border-2 border-warn px-3 text-[18px] font-bold uppercase tracking-[0.06em]">
               Estimate
             </span>
-            <p className="mt-2 text-[22px] leading-snug">
-              Off-peak, a bus with ~12 passengers on ~50 seats is about 24% full: three in four seats travel empty
+            <p className="mt-2 text-[24px] leading-snug">
+              Outside rush hour, a bus can leave with about 12 people on about 50 seats: three in four seats empty
               <Ref n={[5, 6]} />.
             </p>
           </div>
@@ -359,7 +373,7 @@ export const SLIDES: readonly Slide[] = [
       </SerifSlide>
     ),
   },
-  // 8 Conclusion: back to Jack -----------------------------------------------
+  // 8 Conclusion: back to Jack -------------------------------------------------
   {
     title: "Back to Jack",
     body: (
@@ -377,24 +391,30 @@ export const SLIDES: readonly Slide[] = [
             ))}
           </dl>
         </div>
-        <p className="mt-auto text-[96px] font-bold leading-none">Murakoze.</p>
+        <div className="mt-auto flex items-end justify-between gap-8">
+          <p className="text-[96px] font-bold leading-none">Murakoze.</p>
+          <p className="pb-2 text-right text-[20px] text-muted">
+            Tap&amp;Select · {TEAM.join(", ")}
+            <br />
+            CMU-Africa Bridge Program 2026
+          </p>
+        </div>
+      </SerifSlide>
+    ),
+  },
+  // 9 References ---------------------------------------------------------------
+  {
+    title: "References",
+    body: (
+      <SerifSlide title="References">
+        <ol className="space-y-2 text-[18px] leading-snug">
+          {PITCH_REFERENCES.map((r) => (
+            <li key={r.n} className="pl-10 -indent-10">
+              <ReferenceLine reference={r} />
+            </li>
+          ))}
+        </ol>
       </SerifSlide>
     ),
   },
 ];
-
-/** Printed after the slides: every source, IEEE format. Not shown in the presenter. */
-export const REFERENCES_PAGE: Slide = {
-  title: "References",
-  body: (
-    <SerifSlide title="References">
-      <ol className="space-y-2 text-[18px] leading-snug">
-        {PITCH_REFERENCES.map((r) => (
-          <li key={r.n} className="pl-10 -indent-10">
-            <ReferenceLine reference={r} />
-          </li>
-        ))}
-      </ol>
-    </SerifSlide>
-  ),
-};
