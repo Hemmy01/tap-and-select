@@ -1,11 +1,9 @@
 {
-  "voiceAccuracy": 95.8,
   "voiceSamples": 1100,
   "voiceSpeakers": 4,
   "modelRamKb": 20.4,
-  "modelFlashKb": 31.3,
-  "gestureBefore": 39,
-  "gestureAfter": 91,
+  "swipeCorrect": 73,
+  "swipeTries": 80,
   "surveyRespondents": null,
   "surveyGaveUpPct": null,
   "audienceJoined": null

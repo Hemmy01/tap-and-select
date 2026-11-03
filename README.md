@@ -27,7 +27,7 @@ Architecture diagrams: [`docs/architecture.md`](docs/architecture.md).
 | Bus driver | `/bus` | phone in the bus (needs HTTPS for GPS) |
 | Live board | `/live` | the audience's phones, via the QR code on the pitch; public and read-only |
 | Users | `/admin/users` | admins: roles and drivers' buses |
-| Pitch | `/pitch` | the presentation (8 slides, printable) |
+| Pitch | `/pitch` | the presentation (9 slides, printable) |
 | About | `/about` | judges; printable |
 
 ---
@@ -401,20 +401,20 @@ The `https://` address is required for Web Serial on the kiosk and GPS on the ph
 
 ## Pitch
 
-`/pitch` is the presentation, sized for a 7-minute pitch plus demo and told as one story: Jack, a
-real commuter quoted by KT Press, waits from 6 PM to after 9 PM (hook) → he isn't alone (problem) →
-why nobody sees him (gaps) → imagine his evening with Tap&Select (solution, six-panel storyboard) →
-How it works (the five-panel comic, unchanged) → live demo with the `/live` QR → results → back to
-Jack, boarding (conclusion). ← → or Space to move, **F** fullscreen. Story slides are in Times New
-Roman and cite only their own sources at the foot. Slides: `apps/web/components/pitch/slides.tsx`;
-comics: `JourneyComic.tsx`, `IdeaStoryboard.tsx` and Jack's panels in `StoryPanels.tsx`; renumbered
-sources: `content.tsx` (`PITCH_REFERENCES`). The imagined parts of Jack's story are labelled "Imagine".
+`/pitch` is the presentation, sized for a 7-minute pitch plus demo, told as one story in plain words:
+a hook question and Jack, a real commuter quoted by KT Press, who gets home 3+ hours after work →
+"Jack isn't alone" (four numbers, each with its source) → why nobody sees him → imagine his evening
+with Tap&Select (six-panel storyboard) → How it works (five-panel comic) → live demo with the `/live`
+QR → results → back to Jack, boarding → references. ← → or Space to move, **F** fullscreen. Story
+slides are in Times New Roman. Slides: `apps/web/components/pitch/slides.tsx`; comics:
+`JourneyComic.tsx`, `IdeaStoryboard.tsx` and Jack's panels in `StoryPanels.tsx`; sources: `content.tsx`
+(`PITCH_REFERENCES`). The imagined parts of Jack's story are labelled "Imagine".
 
-**Numbers to fill in:** `apps/web/content/pitch.json`. A `null` shows as "—" on the results slide;
-never put a guess there.
+**Numbers to fill in:** `apps/web/content/pitch.json` (survey, audience). The voice accuracy comes
+from `apps/web/content/models.json` (`testAccuracy`, 0–1). A `null` shows as "—"; never put a guess there.
 
 **Print / PDF:** `/pitch?print=1`, or Cmd/Ctrl+P on the deck, gives one slide per A4 landscape page
-on white, then a page with the full IEEE reference list. In Chrome's print dialog keep
+on white; the last slide is the full IEEE reference list. In Chrome's print dialog keep
 **Background graphics** on.
 
 `/about` is the longer printable version with the full feature ranking and its own references.
