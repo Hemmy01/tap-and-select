@@ -61,7 +61,7 @@ const GAPS: readonly { gap: ReactNode; fix: string }[] = [
     gap: (
       <>
         Schedules don&rsquo;t follow demand: off-peak buses leave nearly empty
-        <Ref n={2} />
+        <Ref n={6} />
       </>
     ),
     fix: "Live demand at every stop",
@@ -79,7 +79,7 @@ const GAPS: readonly { gap: ReactNode; fix: string }[] = [
     gap: (
       <>
         Empty card = missed bus; no cash option
-        <Ref n={1} />
+        <Ref n={5} />
       </>
     ),
     fix: "Balance check and fare preview while waiting",
@@ -149,26 +149,26 @@ function Frame({ section, title, children }: { section: PitchSection; title: Rea
 export const SLIDES: readonly Slide[] = [
   // 1 Hook ---------------------------------------------------------------
   {
-    title: "Same bus. Two different hours.",
+    title: "One commuter's evening",
     body: (
-      <SerifSlide title="Same bus. Two different hours." refs={[1, 2]}>
-        <div className="grid grid-cols-2 gap-6">
-          <div className="rounded-card border-2 border-danger bg-surface p-7">
-            <span className="block text-[64px] font-bold leading-none tabular-nums">7:00 AM</span>
-            <span className="mt-4 block text-[28px] leading-snug">
-              70&ndash;80 people on a bus built for about 50
-              <Ref n={1} />
-            </span>
-          </div>
-          <div className="rounded-card border-2 border-muted bg-surface p-7">
-            <span className="block text-[64px] font-bold leading-none tabular-nums">11:00 AM</span>
-            <span className="mt-4 block text-[28px] leading-snug">
-              The same route leaves with 10&ndash;15 passengers
-              <Ref n={2} />
-            </span>
-          </div>
+      <SerifSlide title="Leaves work at 6 PM. Home after 9 PM." refs={[1]}>
+        <blockquote className="border-l-4 border-ink pl-6">
+          <p className="text-[30px] italic leading-snug">
+            &ldquo;I finish work at 6PM and immediately head to a bus stop, but I reach home after 9PM.&rdquo;
+            <Ref n={1} />
+          </p>
+          <footer className="mt-2 text-[22px] text-muted">
+            Jack Nsanzimana, Kanombe, Kigali (KT Press, 2022)
+          </footer>
+        </blockquote>
+        <div className="mt-20 flex items-center gap-5" aria-label="From 6 PM to after 9 PM: more than three hours">
+          <span className="text-[40px] font-bold tabular-nums">6 PM</span>
+          <span className="relative h-2 flex-1 rounded-pill bg-danger">
+            <span className="absolute inset-x-0 -top-11 text-center text-[26px] font-bold">3+ hours to get home</span>
+          </span>
+          <span className="text-[40px] font-bold tabular-nums">9 PM+</span>
         </div>
-        <p className="mt-10 text-[44px] font-bold leading-tight">Why are we either crushed or waiting?</p>
+        <p className="mt-16 text-[48px] font-bold leading-tight">The bus doesn&rsquo;t know Jack is waiting.</p>
         <p className="mt-auto text-[20px] text-muted">
           Tap&amp;Select · CMU-Africa Bridge Program 2026 · {TEAM.join(", ")}
         </p>
@@ -179,23 +179,23 @@ export const SLIDES: readonly Slide[] = [
   {
     title: "The problem",
     body: (
-      <SerifSlide title="Demand is growing faster than the buses" refs={[3, 4, 5, 6]}>
+      <SerifSlide title="Demand is growing faster than the buses" refs={[1, 2, 3, 4]}>
         <div className="grid grid-cols-4 gap-4">
           <Tile value="+54%">
             Kigali&rsquo;s population, 2012 &rarr; 2022 (1.13M &rarr; 1.75M)
-            <Ref n={3} />
+            <Ref n={2} />
           </Tile>
           <Tile value="+30%">
             Bus passengers in one year after the reforms
-            <Ref n={4} />
+            <Ref n={3} />
           </Tile>
           <Tile value="Up to 1 hour">
             Average wait, regulator&rsquo;s figure
-            <Ref n={5} />
+            <Ref n={1} />
           </Tile>
           <Tile value="20% → 50%">
             Public transport&rsquo;s share of trips, today vs target
-            <Ref n={6} />
+            <Ref n={4} />
           </Tile>
         </div>
         <p className="mt-8 border-t-2 border-ink pt-4 text-[30px] font-bold">
@@ -208,10 +208,10 @@ export const SLIDES: readonly Slide[] = [
   {
     title: "The gaps",
     body: (
-      <SerifSlide title="Buses are visible. Passengers are not." refs={[1, 2, 7, 8]}>
+      <SerifSlide title="Buses are visible. Passengers are not." refs={[5, 6, 7, 8]}>
         <p className="text-[26px] leading-snug">
           Generation 2 brought schedules and live bus tracking
-          <Ref n={1} />; Tap&amp;Go made fares cashless.
+          <Ref n={5} />; Tap&amp;Go made fares cashless.
         </p>
         <table className="mt-5 w-full border-collapse text-left text-[24px] leading-snug">
           <thead>
@@ -289,7 +289,7 @@ export const SLIDES: readonly Slide[] = [
   {
     title: "Our results",
     body: (
-      <SerifSlide title="What we built and measured" refs={[1, 2]}>
+      <SerifSlide title="What we built and measured" refs={[5, 6]}>
         <div className="grid grid-cols-3 gap-4">
           <Tile value={pitchValue(N.voiceAccuracy, "%")}>
             Voice model accuracy on {pitchValue(N.voiceSamples)} samples, {pitchValue(N.voiceSpeakers)} voices
@@ -310,7 +310,7 @@ export const SLIDES: readonly Slide[] = [
             </span>
             <p className="mt-2 text-[22px] leading-snug">
               Off-peak, a bus with ~12 passengers on ~50 seats is about 24% full: three in four seats travel empty
-              <Ref n={[1, 2]} />.
+              <Ref n={[5, 6]} />.
             </p>
           </div>
         </div>
