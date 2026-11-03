@@ -1,40 +1,121 @@
-// The 15 pitch slides. Each renders into a fixed 1280×720 canvas that the deck
+// The pitch: six slides in Times New Roman plus the "How it works" comic, kept
+// exactly as it was. Each renders into a fixed 1280×720 canvas that the deck
 // scales to the screen, so sizes here are real projector sizes.
 
-import Image from "next/image";
+import { Clock, LayoutDashboard, Nfc } from "lucide-react";
 import type { ReactNode } from "react";
-import { RouteBadge } from "@/components/RouteBadge";
-import { IdeaStoryboard } from "./IdeaStoryboard";
 import { JourneyComic } from "./JourneyComic";
-import { HomeLink } from "@/components/HomeLink";
-import { DESTINATIONS } from "@/lib/destinations";
-import { formatAccuracy, MODELS } from "@/lib/models";
 import { PITCH_SECTIONS, type PitchSection } from "@/lib/pitch-nav";
-import {
-  BENEFITS_SHORT,
-  BurgerParagraph,
-  Cite,
-  CLOSING_LINE,
-  CONCLUSION,
-  IMPROVEMENTS,
-  REALITY,
-  RealityBadge,
-  REFERENCES,
-  ReferenceLine,
-  ROADMAP_PHASES,
-  SENSE_DECIDE_INFORM,
-  TAGLINE,
-  TEAM,
-  WHAT_RUNS_WHERE,
-} from "./content";
+import { PITCH_NUMBERS as N, pitchValue } from "@/lib/pitch";
+import { PITCH_REFERENCES, ReferenceLine, referenceYear, TEAM, WHAT_RUNS_WHERE } from "./content";
 
 export interface Slide {
   title: string;
-  section: PitchSection | null;
-  speaker: string;
-  notes: readonly string[];
   body: ReactNode;
 }
+
+// ---------------------------------------------------------------------------
+// The six slides: short title, 3–5 lines, one visual, cited sources at the foot.
+// ---------------------------------------------------------------------------
+
+/** In-text citation, e.g. [1] or [1], [2]. */
+function Ref({ n }: { n: number | readonly number[] }) {
+  const list = typeof n === "number" ? [n] : n;
+  return <span className="ml-1 align-baseline text-[18px] font-normal text-muted">[{list.join("], [")}]</span>;
+}
+
+/** Only the sources cited on this slide, short form (the full list is printed last). */
+function SlideReferences({ ns }: { ns: readonly number[] }) {
+  return (
+    <p className="mt-4 border-t border-line pt-2 text-[18px] leading-snug text-muted">
+      {PITCH_REFERENCES.filter((r) => ns.includes(r.n)).map((r, i) => (
+        <span key={r.n}>
+          {i > 0 ? " · " : null}[{r.n}] {r.author.replace(/\.$/, "")} ({referenceYear(r)}), <em>{r.title}</em>
+        </span>
+      ))}
+    </p>
+  );
+}
+
+function SerifSlide({ title, refs, children }: { title: ReactNode; refs?: readonly number[]; children: ReactNode }) {
+  return (
+    <div className="pitch-serif flex h-full flex-col px-16 pt-12 pb-14 text-ink">
+      <h2 className="text-[44px] leading-[1.1]">{title}</h2>
+      <div className="mt-6 flex min-h-0 flex-1 flex-col">{children}</div>
+      {refs ? <SlideReferences ns={refs} /> : null}
+    </div>
+  );
+}
+
+function Tile({ value, children, className = "" }: { value: ReactNode; children: ReactNode; className?: string }) {
+  return (
+    <div className={`rounded-card border border-line bg-surface p-5 ${className}`}>
+      <span className="block text-[52px] font-bold leading-none tabular-nums">{value}</span>
+      <span className="mt-3 block text-[24px] leading-snug">{children}</span>
+    </div>
+  );
+}
+
+const GAPS: readonly { gap: ReactNode; fix: string }[] = [
+  {
+    gap: (
+      <>
+        Schedules don&rsquo;t follow demand: off-peak buses leave nearly empty
+        <Ref n={2} />
+      </>
+    ),
+    fix: "Live demand at every stop",
+  },
+  {
+    gap: (
+      <>
+        Tap&amp;Go only sees you once you&rsquo;re on the bus
+        <Ref n={7} />
+      </>
+    ),
+    fix: "Demand registered at the stop, before the bus comes",
+  },
+  {
+    gap: (
+      <>
+        Empty card = missed bus; no cash option
+        <Ref n={1} />
+      </>
+    ),
+    fix: "Balance check and fare preview while waiting",
+  },
+  {
+    gap: (
+      <>
+        No conductor: missed stops, no alerts
+        <Ref n={8} />
+      </>
+    ),
+    fix: "Driver screen: “3 getting off at the next stop”",
+  },
+];
+
+const SOLUTION_STEPS = [
+  { step: "Sense", Icon: Nfc, detail: "Tap your card, say or swipe your stop" },
+  { step: "Decide", Icon: LayoutDashboard, detail: "HQ sees live demand and sends buses where people wait" },
+  { step: "Inform", Icon: Clock, detail: "A fair queue number and a live ETA" },
+] as const;
+
+const GAINS = [
+  { who: "Passengers", text: "Fair queue, live ETA, no smartphone needed" },
+  { who: "Operators", text: "Fuller buses, fewer empty trips" },
+  { who: "City / RURA", text: "Live demand data per stop" },
+] as const;
+
+const SUMMARY = [
+  { label: "Problem", text: "Demand grows faster than buses, and nobody sees who is waiting." },
+  { label: "Solution", text: "Every bus stop becomes as visible as a bus park." },
+  { label: "Next", text: "A pilot at 2–3 stops on one route, real card readers, more Kinyarwanda voices." },
+] as const;
+
+// ---------------------------------------------------------------------------
+// The comic slide, unchanged from the previous deck.
+// ---------------------------------------------------------------------------
 
 /** "Problem · Solution · Tech · Conclusion", the current part marked in ink. */
 function Outline({ current }: { current: PitchSection }) {
@@ -65,165 +146,131 @@ function Frame({ section, title, children }: { section: PitchSection; title: Rea
   );
 }
 
-/** QR code for the public live board (public/pitch/live-qr.svg, made with `npx qrcode`). */
-function LiveQr({ size }: { size: number }) {
-  return (
-    <Image
-      src="/pitch/live-qr.svg"
-      width={size}
-      height={size}
-      unoptimized
-      alt="QR code: tap-and-select.vercel.app/live"
-      className="rounded-md border border-line bg-white p-1"
-    />
-  );
-}
-
-function Card({ heading, children, className = "" }: { heading?: ReactNode; children: ReactNode; className?: string }) {
-  return (
-    <div className={`rounded-card border border-line bg-surface p-6 ${className}`}>
-      {heading ? <h3 className="text-[28px] leading-tight">{heading}</h3> : null}
-      <div className={heading ? "mt-3 text-[24px] leading-snug text-ink" : "text-[24px] leading-snug text-ink"}>{children}</div>
-    </div>
-  );
-}
-
-const voice = MODELS.voice;
-const validation = voice.validationAccuracy;
-
 export const SLIDES: readonly Slide[] = [
-  // 1 --------------------------------------------------------------------
+  // 1 Hook ---------------------------------------------------------------
   {
-    title: "Tap&Select",
-    section: null,
-    speaker: "Samira",
-    notes: [
-      "Samira: 1–2 (hook, problem). Kevin: 3 (justification). Kenny: 4 (solution and benefits).",
-      "Emmanuel: 5–9 (how it works, what's real, recognition, the whole idea, live demo). Hassan: 10–13 (roadmap, conclusion, references, questions).",
-      "About 5 minutes of slides plus a 3-minute demo. Each speaker: one idea per slide, no reading.",
-    ],
+    title: "Same bus. Two different hours.",
     body: (
-      <div className="flex h-full flex-col justify-between px-16 py-14">
-        <HomeLink />
-        <div>
-          <h1 className="text-[104px] leading-none">Tap&amp;Select</h1>
-          <p className="mt-6 max-w-[900px] text-[34px] leading-snug text-ink">{TAGLINE}</p>
+      <SerifSlide title="Same bus. Two different hours." refs={[1, 2]}>
+        <div className="grid grid-cols-2 gap-6">
+          <div className="rounded-card border-2 border-danger bg-surface p-7">
+            <span className="block text-[64px] font-bold leading-none tabular-nums">7:00 AM</span>
+            <span className="mt-4 block text-[28px] leading-snug">
+              70&ndash;80 people on a bus built for about 50
+              <Ref n={1} />
+            </span>
+          </div>
+          <div className="rounded-card border-2 border-muted bg-surface p-7">
+            <span className="block text-[64px] font-bold leading-none tabular-nums">11:00 AM</span>
+            <span className="mt-4 block text-[28px] leading-snug">
+              The same route leaves with 10&ndash;15 passengers
+              <Ref n={2} />
+            </span>
+          </div>
         </div>
-        <div className="flex items-end justify-between gap-8 border-t-2 border-ink pt-5 text-[22px]">
-          <p className="font-semibold">{TEAM.join(" · ")}</p>
-          <p className="text-muted">CMU-Africa Bridge Program 2026</p>
-        </div>
-      </div>
+        <p className="mt-10 text-[44px] font-bold leading-tight">Why are we either crushed or waiting?</p>
+        <p className="mt-auto text-[20px] text-muted">
+          Tap&amp;Select · CMU-Africa Bridge Program 2026 · {TEAM.join(", ")}
+        </p>
+      </SerifSlide>
     ),
   },
-  // 2 --------------------------------------------------------------------
+  // 2 The problem --------------------------------------------------------
   {
     title: "The problem",
-    section: "Problem",
-    speaker: "Samira",
-    notes: [
-      "Ask the question, pause, and ask for a show of hands: who waited more than 20 minutes?",
-      "Story: a Kigali commuter leaves work at 6 PM and gets home after 9 PM [1].",
-      "Three numbers: waits up to an hour, half the buses the city needs, near-empty buses off-peak.",
-      "Land the gap: nobody measures who is waiting.",
-    ],
     body: (
-      <Frame section="Problem" title="How long did you wait for a bus this week?">
-        <p className="max-w-[1080px] text-[30px] leading-snug">
-          Buses wait for passengers while passengers wait for buses, because neither side can see the other.
-        </p>
-        <div className="mt-8 grid grid-cols-3 gap-5">
-          <Card>
-            <span className="num block text-[56px] font-bold leading-none">1 hour</span>
-            <span className="mt-3 block">
-              Average wait can reach an hour, says the regulator.
-              <Cite n={1} />
-            </span>
-          </Card>
-          <Card>
-            <span className="num block text-[56px] font-bold leading-none">229 / 500</span>
-            <span className="mt-3 block">
-              Buses Kigali had in 2022, against about 500 needed.
-              <Cite n={1} />
-            </span>
-          </Card>
-          <Card>
-            <span className="num block text-[56px] font-bold leading-none">10&ndash;15</span>
-            <span className="mt-3 block">
-              Passengers on some off-peak scheduled buses.
-              <Cite n={2} />
-            </span>
-          </Card>
+      <SerifSlide title="Demand is growing faster than the buses" refs={[3, 4, 5, 6]}>
+        <div className="grid grid-cols-4 gap-4">
+          <Tile value="+54%">
+            Kigali&rsquo;s population, 2012 &rarr; 2022 (1.13M &rarr; 1.75M)
+            <Ref n={3} />
+          </Tile>
+          <Tile value="+30%">
+            Bus passengers in one year after the reforms
+            <Ref n={4} />
+          </Tile>
+          <Tile value="Up to 1 hour">
+            Average wait, regulator&rsquo;s figure
+            <Ref n={5} />
+          </Tile>
+          <Tile value="20% → 50%">
+            Public transport&rsquo;s share of trips, today vs target
+            <Ref n={6} />
+          </Tile>
         </div>
-        <p className="mt-8 border-t-2 border-ink pt-4 text-[26px] font-semibold">
-          Nobody measures who is waiting, where, or for which destination.
+        <p className="mt-8 border-t-2 border-ink pt-4 text-[30px] font-bold">
+          Nobody can see where that demand is waiting.
         </p>
-      </Frame>
+      </SerifSlide>
     ),
   },
-  // 3 --------------------------------------------------------------------
+  // 3 The gaps -----------------------------------------------------------
   {
-    title: "Justification",
-    section: "Problem",
-    speaker: "Kevin",
-    notes: [
-      "This is our formal justification, in burger structure: topic, development, evidence, summary.",
-      "Stress the linking words: However, In contrast, Furthermore, Therefore.",
-      "Key point: Generation 2 schedules are planned ahead; demand changes by hour, stop and destination.",
-    ],
+    title: "The gaps",
     body: (
-      <Frame section="Problem" title="Why Kigali needs it">
-        <BurgerParagraph />
-      </Frame>
+      <SerifSlide title="Buses are visible. Passengers are not." refs={[1, 2, 7, 8]}>
+        <p className="text-[26px] leading-snug">
+          Generation 2 brought schedules and live bus tracking
+          <Ref n={1} />; Tap&amp;Go made fares cashless.
+        </p>
+        <table className="mt-5 w-full border-collapse text-left text-[24px] leading-snug">
+          <thead>
+            <tr className="border-b-2 border-ink">
+              <th className="w-[56%] py-2 pr-6 font-bold">Gap today</th>
+              <th className="py-2 font-bold">Tap&amp;Select fix</th>
+            </tr>
+          </thead>
+          <tbody>
+            {GAPS.map((g) => (
+              <tr key={g.fix} className="border-b border-line align-top">
+                <td className="py-2.5 pr-6">{g.gap}</td>
+                <td className="py-2.5 font-bold">{g.fix}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </SerifSlide>
     ),
   },
-  // 4 --------------------------------------------------------------------
+  // 4 The solution -------------------------------------------------------
   {
     title: "The solution",
-    section: "Solution",
-    speaker: "Kenny",
-    notes: [
-      "Read the vision line, then the three steps left to right: Sense is the kiosk, Decide is HQ with a person approving, Inform is the ticket and ETA.",
-      "Then who gains, one line each. Operator gains are our aim; a pilot would measure them.",
-      "We complement Generation 2: schedules plus real demand.",
-    ],
     body: (
-      <Frame section="Solution" title="Every bus stop becomes a sensor. Every bus leaves for a reason.">
+      <SerifSlide title="Tap&Select brings the bus park to every bus stop">
         <ol className="grid grid-cols-3 gap-5">
-          {SENSE_DECIDE_INFORM.map((s, i) => (
-            <li key={s.step} className="rounded-card border border-line bg-surface p-5">
-              <span className="num text-[20px] text-muted">{String(i + 1).padStart(2, "0")}</span>
-              <h3 className="mt-1 text-[34px]">{s.step}</h3>
-              <p className="mt-2 text-[23px] leading-snug">{s.detail}</p>
+          {SOLUTION_STEPS.map(({ step, Icon, detail }) => (
+            <li key={step} className="rounded-card border border-line bg-surface p-5">
+              <Icon aria-hidden className="h-9 w-9 text-accent" strokeWidth={2} />
+              <h3 className="mt-2 text-[34px] leading-tight">{step}</h3>
+              <p className="mt-1 text-[24px] leading-snug">{detail}</p>
             </li>
           ))}
         </ol>
-        <dl className="mt-6 grid grid-cols-3 divide-x divide-line rounded-card border border-line bg-surface">
-          {BENEFITS_SHORT.map((b) => (
-            <div key={b.who} className="px-5 py-4">
-              <dt className="text-[17px] font-semibold uppercase tracking-[0.1em] text-muted">{b.who}</dt>
-              <dd className="mt-1 text-[21px] leading-snug">{b.text}</dd>
+        <dl className="mt-5 grid grid-cols-3 divide-x divide-line rounded-card border border-line bg-surface">
+          {GAINS.map((g) => (
+            <div key={g.who} className="px-5 py-3">
+              <dt className="text-[20px] font-bold uppercase tracking-[0.06em] text-muted">{g.who}</dt>
+              <dd className="text-[24px] leading-snug">{g.text}</dd>
             </div>
           ))}
         </dl>
-        <p className="mt-6 text-[24px]">
-          Tap&amp;Select works with Generation 2: schedules plus real demand.
-          <Cite n={3} />
-        </p>
-      </Frame>
+        <div className="mt-auto flex items-center gap-6">
+          {/* TODO: /join does not exist yet; replace with its QR code (public/pitch/). */}
+          <div className="flex h-[104px] w-[104px] shrink-0 items-center justify-center rounded-md border-2 border-dashed border-muted text-center text-[16px] leading-tight text-muted">
+            QR code
+            <br />
+            /join
+          </div>
+          <p className="text-[28px] font-bold leading-snug">
+            Don&rsquo;t take our word for it. Scan the QR and join the queue.
+          </p>
+        </div>
+      </SerifSlide>
     ),
   },
-  // 5 --------------------------------------------------------------------
+  // Comic: "How it works", unchanged -------------------------------------
   {
     title: "How it works",
-    section: "Tech",
-    speaker: "Emmanuel",
-    notes: [
-      "Walk the comic left to right: one passenger, five steps. The drawings explain the idea; the live demo shows the real thing.",
-      "In the prototype the card reader is simulated on screen; the voice and swipes are real. SELECT,REM is the actual line the board sends.",
-      "Recognition happens on the Arduino itself, not in the cloud.",
-      "The browser is only a gateway; the rules live in the cloud database.",
-    ],
     body: (
       <Frame section="Tech" title="How it works">
         <JourneyComic />
@@ -238,283 +285,69 @@ export const SLIDES: readonly Slide[] = [
       </Frame>
     ),
   },
-  // 6 --------------------------------------------------------------------
+  // 5 Our results --------------------------------------------------------
   {
-    title: "What works today",
-    section: "Tech",
-    speaker: "Emmanuel",
-    notes: [
-      "Lead with the three strongest features: they work end to end today.",
-      "Then be upfront: judges trust a team that says what is simulated.",
-      "Real: the board's voice model and swipes, the whole queue and dispatch system, phone GPS, roles.",
-      "Estimated: ETA uses a fixed average speed; seats are counted from tickets; our thresholds are guesses until a pilot.",
-      "Simulated: the card tap, other stops, and the indoor drive button. All data so far is from our tests.",
-    ],
+    title: "Our results",
     body: (
-      <Frame section="Tech" title="What works today, and what doesn’t yet">
-        <p className="mb-5 text-[24px] leading-snug">
-          <span className="font-semibold">Strongest, working end to end: </span>
-          live demand → dispatch loop · fair first-come queue · live bus tracking
-        </p>
-        <div className="grid grid-cols-4 gap-4">
-          {REALITY.map((group) => (
-            <section key={group.kind} className="rounded-card border border-line bg-surface p-4">
-              <RealityBadge reality={group.kind} className="text-[17px]" />
-              <ul className="mt-3 space-y-2.5">
-                {group.items.map((item) => (
-                  <li key={item} className="text-[18px] leading-snug">
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ))}
-        </div>
-      </Frame>
-    ),
-  },
-  // 7 --------------------------------------------------------------------
-  {
-    title: "On-device recognition",
-    section: "Tech",
-    speaker: "Emmanuel",
-    notes: [
-      "Voice: Edge Impulse keyword spotting with four stop names plus noise and unknown, so chatter never selects.",
-      "It runs on the microcontroller itself, so no audio leaves the board.",
-      "Swipes are not ML: the sensor reads the direction. We measured them; the voice model is not measured yet. Say so.",
-      "Confirm the dataset size and the on-board figures from Edge Impulse before presenting.",
-    ],
-    body: (
-      <Frame section="Tech" title="On-device recognition">
-        <div className="grid grid-cols-2 gap-5">
-          <Card heading="Voice: Edge Impulse keyword model">
-            <span className="flex flex-wrap gap-2">
-              {DESTINATIONS.map((d) => (
-                <span key={d.code} className="flex items-center gap-2 rounded-pill border border-line px-3 py-0.5 text-[20px]">
-                  <RouteBadge code={d.code} size="sm" />
-                  {d.name}
-                </span>
-              ))}
-              <span className="rounded-pill border border-line px-3 py-0.5 text-[20px]">noise</span>
-              <span className="rounded-pill border border-line px-3 py-0.5 text-[20px]">unknown</span>
+      <SerifSlide title="What we built and measured" refs={[1, 2]}>
+        <div className="grid grid-cols-3 gap-4">
+          <Tile value={pitchValue(N.voiceAccuracy, "%")}>
+            Voice model accuracy on {pitchValue(N.voiceSamples)} samples, {pitchValue(N.voiceSpeakers)} voices
+          </Tile>
+          <Tile value={`${pitchValue(N.modelRamKb)} KB RAM`}>
+            Runs on the board: {pitchValue(N.modelFlashKb)} KB flash, offline
+          </Tile>
+          <Tile value={`${pitchValue(N.gestureBefore, "%")} → ${pitchValue(N.gestureAfter, "%")}`}>
+            Gesture accuracy, after switching to swipes
+          </Tile>
+          <Tile value={pitchValue(N.surveyGaveUpPct, "%")}>
+            of {pitchValue(N.surveyRespondents)} commuters surveyed gave up waiting last month
+          </Tile>
+          <Tile value={pitchValue(N.audienceJoined)}>of you joined the queue live today</Tile>
+          <div className="rounded-card border-2 border-dashed border-warn bg-surface p-5">
+            <span className="inline-block rounded-pill border-2 border-warn px-3 text-[18px] font-bold uppercase tracking-[0.06em]">
+              Estimate
             </span>
-            <span className="mt-3 block text-[21px] text-muted">
-              Runs on the Arduino: int8, about 20 KB RAM, about 0.4 s per window.
-            </span>
-            <span className="mt-2 block text-[21px]">
-              Accuracy:{" "}
-              {validation === null ? (
-                <span className="font-semibold">not measured yet</span>
-              ) : (
-                <span className="num font-semibold">{formatAccuracy(validation)}</span>
-              )}
-            </span>
-          </Card>
-          <Card heading="Swipes: read by the sensor, no ML">
-            <span className="num block text-[64px] font-bold leading-none">85&ndash;95%</span>
-            <span className="mt-2 block text-[21px] text-muted">
-              Correct per direction, 20 tries each, one tester. Doing nothing never selected a stop.
-            </span>
-          </Card>
+            <p className="mt-2 text-[22px] leading-snug">
+              Off-peak, a bus with ~12 passengers on ~50 seats is about 24% full: three in four seats travel empty
+              <Ref n={[1, 2]} />.
+            </p>
+          </div>
         </div>
-        <p className="mt-6 rounded-card border-2 border-ink px-5 py-3 text-[22px] leading-snug">
-          <span className="font-semibold">What we learned: </span>
-          voices the model has never heard are harder. Next: more voices and accents, recorded at real stops.
-        </p>
-      </Frame>
+      </SerifSlide>
     ),
   },
-  // 8 --------------------------------------------------------------------
-  {
-    title: "The whole idea",
-    section: "Tech",
-    speaker: "Emmanuel",
-    notes: [
-      "Before the demo, tell the story once: Sense (1), Decide (2–3), Inform (4–5), Next (6).",
-      "Say: these are drawings of the idea; the next slide shows the working prototype doing panels 1 to 5.",
-      "Panel 6 is the vision, not built: a pilot on one route first.",
-    ],
-    body: (
-      <Frame section="Tech" title="The whole idea, start to finish">
-        <IdeaStoryboard />
-      </Frame>
-    ),
-  },
-  // 9 --------------------------------------------------------------------
-  {
-    title: "Live demo",
-    section: "Tech",
-    speaker: "Emmanuel",
-    notes: [
-      "Kiosk: tap the card reader → Test card → say “Remera” or swipe left → Confirm → ticket (it is read out loud).",
-      "Dashboard: Approve the release recommendation → kiosk shows the bus and ETA.",
-      "Simulate drive (or the driver's phone GPS): the bus moves on the map, then Now boarding with the ticket called out.",
-      "Invite the room to scan the QR code (opens /live, no sign-in) before you start. Come back with ← or Alt+Tab.",
-      "Fallback: tap a stop on screen if the room is noisy.",
-    ],
-    body: (
-      <Frame section="Tech" title="Live demo">
-        <p className="text-[28px]">A passenger, a queue number, and a bus released by HQ, live.</p>
-        <div className="mt-8 grid grid-cols-3 gap-6">
-          <a
-            href="/kiosk"
-            target="_blank"
-            rel="noreferrer"
-            className="flex h-40 flex-col justify-center rounded-card bg-accent px-8 text-paper transition-colors duration-200 ease-out hover:bg-ink"
-          >
-            <span className="text-[32px] font-bold font-display">Open kiosk</span>
-            <span className="num text-[20px] opacity-90">/kiosk</span>
-          </a>
-          <a
-            href="/dashboard"
-            target="_blank"
-            rel="noreferrer"
-            className="flex h-40 flex-col justify-center rounded-card border-2 border-ink bg-surface px-8 transition-colors duration-200 ease-out hover:bg-paper"
-          >
-            <span className="text-[32px] font-bold font-display">HQ dashboard</span>
-            <span className="num text-[20px] text-muted">/dashboard</span>
-          </a>
-          <a
-            href="/live"
-            target="_blank"
-            rel="noreferrer"
-            className="flex h-40 flex-col justify-center rounded-card border-2 border-ink bg-surface px-8 transition-colors duration-200 ease-out hover:bg-paper"
-          >
-            <span className="text-[32px] font-bold font-display">Live board</span>
-            <span className="num text-[20px] text-muted">/live · no sign-in</span>
-          </a>
-        </div>
-        <ol className="mt-8 flex flex-wrap items-center gap-x-3 gap-y-2 text-[21px] text-muted">
-          {["Tap card", "Say “Remera” or swipe", "Confirm", "Ticket", "HQ approves", "Bus drives (GPS)", "Now boarding"].map(
-            (step, i, all) => (
-              <li key={step} className="flex items-center gap-3">
-                <span className="text-ink">{step}</span>
-                {i < all.length - 1 ? <span aria-hidden>→</span> : null}
-              </li>
-            ),
-          )}
-        </ol>
-        <div className="mt-8 flex items-center gap-6 rounded-card border-2 border-ink bg-surface px-6 py-3">
-          <LiveQr size={120} />
-          <p className="text-[26px] leading-snug">
-            Scan to follow along on your phone
-            <span className="num block font-bold">tap-and-select.vercel.app/live</span>
-            <span className="block text-[19px] text-muted">No sign-in. Watch the queue and the bus move live.</span>
-          </p>
-        </div>
-      </Frame>
-    ),
-  },
-  // 10 -------------------------------------------------------------------
-  {
-    title: "Roadmap",
-    section: "Conclusion",
-    speaker: "Hassan",
-    notes: [
-      "Today is a working prototype at one kiosk.",
-      "Next, a pilot at 2–3 stops on one route, then the city.",
-      "Top three improvements: measure and grow the voice model, a one-week pilot at a real stop, a real card reader. The full list is on /about.",
-    ],
-    body: (
-      <Frame section="Conclusion" title="Roadmap">
-        <ol className="relative grid grid-cols-3 gap-6">
-          <span aria-hidden className="absolute top-[22px] right-[16%] left-[16%] h-0.5 bg-ink" />
-          {ROADMAP_PHASES.map((p, i) => (
-            <li key={p.phase} className="relative flex flex-col items-center text-center">
-              <span
-                className={
-                  i === 0
-                    ? "num z-10 flex h-11 w-11 items-center justify-center rounded-full bg-ink text-[20px] font-bold text-paper"
-                    : "num z-10 flex h-11 w-11 items-center justify-center rounded-full border-2 border-ink bg-paper text-[20px] font-bold"
-                }
-              >
-                {i + 1}
-              </span>
-              <span className="mt-3 text-[17px] font-semibold uppercase tracking-[0.12em] text-muted">{p.when}</span>
-              <h3 className="text-[34px]">{p.phase}</h3>
-              <p className="mt-1 text-[22px]">{p.detail}</p>
-            </li>
-          ))}
-        </ol>
-        <h3 className="mt-6 text-[17px] font-semibold uppercase tracking-[0.12em] text-muted">
-          Top three improvements
-        </h3>
-        <ol className="mt-3 grid grid-cols-3 gap-3">
-          {IMPROVEMENTS.slice(0, 3).map((u, i) => (
-            <li key={u.what} className="rounded-card border border-line bg-surface px-4 py-2.5">
-              <span className="block text-[20px] font-semibold leading-tight">
-                <span className="num mr-2 text-muted">{i + 1}</span>
-                {u.what}
-              </span>
-              <span className="mt-0.5 block text-[16px] leading-snug text-muted">{u.why}</span>
-            </li>
-          ))}
-        </ol>
-      </Frame>
-    ),
-  },
-  // 11 -------------------------------------------------------------------
+  // 6 Conclusion ---------------------------------------------------------
   {
     title: "Conclusion",
-    section: "Conclusion",
-    speaker: "Hassan",
-    notes: [
-      "Summarise in three lines: problem, solution, tech.",
-      "Pause, then read the last line slowly. That is the sentence they should remember.",
-    ],
     body: (
-      <Frame section="Conclusion" title="Conclusion">
+      <SerifSlide title="Today, people wait for buses. With Tap&Select, buses know who is waiting.">
         <dl className="space-y-3">
-          {CONCLUSION.map((c) => (
-            <div key={c.label} className="grid grid-cols-[180px_1fr] gap-6 border-b border-line pb-3">
-              <dt className="text-[24px] font-semibold font-display">{c.label}</dt>
-              <dd className="text-[24px] leading-snug">{c.text}</dd>
+          {SUMMARY.map((s) => (
+            <div key={s.label} className="grid grid-cols-[160px_1fr] gap-6 border-b border-line pb-3">
+              <dt className="text-[28px] font-bold">{s.label}</dt>
+              <dd className="text-[28px] leading-snug">{s.text}</dd>
             </div>
           ))}
         </dl>
-        <p className="mt-10 text-[46px] font-bold leading-[1.12] font-display">{CLOSING_LINE}</p>
-      </Frame>
-    ),
-  },
-  // 12 -------------------------------------------------------------------
-  {
-    title: "References",
-    section: "Conclusion",
-    speaker: "Hassan",
-    notes: ["Every number in the pitch comes from these six sources.", "Leave it up briefly; judges can read it on /about later."],
-    body: (
-      <Frame section="Conclusion" title="References">
-        <ol className="space-y-3 text-[19px] leading-snug">
-          {REFERENCES.map((r) => (
-            <li key={r.n} className="pl-12 -indent-12">
-              <ReferenceLine reference={r} />
-            </li>
-          ))}
-        </ol>
-      </Frame>
-    ),
-  },
-  // 13 -------------------------------------------------------------------
-  {
-    title: "Thank you",
-    section: null,
-    speaker: "Hassan",
-    notes: ["Thank the judges in Kinyarwanda and English.", "Invite questions; the demo stays open for follow-ups."],
-    body: (
-      <div className="flex h-full flex-col justify-between px-16 py-14">
-        <div className="flex items-start justify-between">
-          <HomeLink />
-          <figure className="text-center">
-            <LiveQr size={130} />
-            <figcaption className="num mt-1 text-[16px] text-muted">/live</figcaption>
-          </figure>
-        </div>
-        <div>
-          <p className="text-[96px] font-bold leading-none font-display">Murakoze. Thank you.</p>
-          <p className="mt-8 text-[44px] font-semibold text-muted">Questions?</p>
-        </div>
-        <p className="border-t-2 border-ink pt-5 text-[22px] font-semibold">{TEAM.join(" · ")}</p>
-      </div>
+        <p className="mt-auto text-[96px] font-bold leading-none">Murakoze.</p>
+      </SerifSlide>
     ),
   },
 ];
+
+/** Printed after the slides: every source, IEEE format. Not shown in the presenter. */
+export const REFERENCES_PAGE: Slide = {
+  title: "References",
+  body: (
+    <SerifSlide title="References">
+      <ol className="space-y-2 text-[18px] leading-snug">
+        {PITCH_REFERENCES.map((r) => (
+          <li key={r.n} className="pl-10 -indent-10">
+            <ReferenceLine reference={r} />
+          </li>
+        ))}
+      </ol>
+    </SerifSlide>
+  ),
+};
