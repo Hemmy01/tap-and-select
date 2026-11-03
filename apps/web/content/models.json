@@ -1,8 +1,8 @@
 {
   "voice": {
     "status": "trained",
-    "testAccuracy": null,
-    "validationAccuracy": null,
+    "testAccuracy": 0.59,
+    "validationAccuracy": 0.92,
     "labels": ["remera", "nyabugogo", "kimironko", "downtown", "noise", "unknown"],
     "updated": "2026-10-28"
   },

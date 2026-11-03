@@ -8,7 +8,7 @@ import type { ReactNode } from "react";
 import { IdeaStoryboard } from "./IdeaStoryboard";
 import { JourneyComic } from "./JourneyComic";
 import { JackBoards, JackWaits, NobodySeesJack } from "./StoryPanels";
-import { formatAccuracy, headlineAccuracy, MODELS } from "@/lib/models";
+import { formatAccuracy, MODELS } from "@/lib/models";
 import { PITCH_SECTIONS, type PitchSection } from "@/lib/pitch-nav";
 import { PITCH_NUMBERS as N, pitchPercent, pitchValue } from "@/lib/pitch";
 import { PITCH_REFERENCES, ReferenceLine, referenceYear, TEAM } from "./content";
@@ -140,7 +140,8 @@ const SUMMARY = [
 
 const DEMO_STEPS = ["Tap card", "Say “Remera” or swipe", "Confirm", "Get a ticket", "Control room sends a bus", "Bus arrives"];
 
-const voice = headlineAccuracy(MODELS.voice);
+/** Voice model on a voice it never heard (Edge Impulse test set). */
+const voiceNew = MODELS.voice.testAccuracy;
 
 // ---------------------------------------------------------------------------
 // The "How it works" comic slide.
@@ -191,10 +192,6 @@ export const SLIDES: readonly Slide[] = [
               <p className="text-[26px] italic leading-snug">
                 &ldquo;I finish work at 6PM and immediately head to a bus stop, but I reach home after 9PM.&rdquo;
               </p>
-              <footer className="mt-2 text-[20px] text-muted">
-                Jack Nsanzimana, Kanombe, speaking to KT Press, 2022
-                <Ref n={1} />
-              </footer>
             </blockquote>
           </div>
         </div>
@@ -208,14 +205,14 @@ export const SLIDES: readonly Slide[] = [
     body: (
       <SerifSlide title="Jack isn’t alone.">
         <div className="grid grid-cols-4 gap-4">
+          <Stat value="1 hour" source={<>RURA, via KT Press (2022) <Ref n={1} /></>}>
+            is how long the average wait at a stop can be
+          </Stat>
           <Stat value="+54%" source={<>Rwanda census, via City Population (2023) <Ref n={2} /></>}>
             more people live in Kigali than 10 years ago (1.13 → 1.75 million)
           </Stat>
           <Stat value="+30%" source={<>C. Nyandwi, AllAfrica (2026) <Ref n={3} /></>}>
             more people ride the bus than last year
-          </Stat>
-          <Stat value="1 hour" source={<>RURA, via KT Press (2022) <Ref n={1} /></>}>
-            is how long the average wait at a stop can be
           </Stat>
           <Stat value="1 in 5" source={<>The New Times, AllAfrica (2026) <Ref n={4} /></>}>
             trips are made by bus today. The city wants 1 in 2.
@@ -291,7 +288,41 @@ export const SLIDES: readonly Slide[] = [
       </Frame>
     ),
   },
-  // 6 Live demo ----------------------------------------------------------------
+  // 6 Results: does it work? ---------------------------------------------------
+  {
+    title: "Does it work?",
+    body: (
+      <SerifSlide title="Does it work? What we measured">
+        <div className="grid grid-cols-3 gap-4">
+          <Stat value={pitchPercent(N.swipeCorrect, N.swipeTries)} source="our own tests on the board">
+            of hand swipes picked the right stop ({pitchValue(N.swipeCorrect)} of {pitchValue(N.swipeTries)} tries)
+          </Stat>
+          <Stat value={formatAccuracy(voiceNew)} source="our model in Edge Impulse">
+            of stop names understood, on a new voice it never heard. Next: more voices and accents.
+          </Stat>
+          <Stat value={pitchValue(N.modelRamKb, " KB")} source="Edge Impulse">
+            of memory is all the voice model needs, less than one phone photo. No internet needed.
+          </Stat>
+          <Stat value={pitchValue(N.surveyGaveUpPct, "%")} source="our survey">
+            of {pitchValue(N.surveyRespondents)} commuters gave up waiting for a bus last month
+          </Stat>
+          <Stat value={pitchValue(N.audienceJoined)} source="live data from the demo">
+            of you joined the line during the demo
+          </Stat>
+          <div className="rounded-card border-2 border-dashed border-warn bg-surface p-5">
+            <span className="inline-block rounded-pill border-2 border-warn px-3 text-[18px] font-bold uppercase tracking-[0.06em]">
+              Estimate
+            </span>
+            <p className="mt-2 text-[24px] leading-snug">
+              Outside rush hour, a bus can leave with about 12 people on about 50 seats: three in four seats empty
+              <Ref n={[5, 6]} />.
+            </p>
+          </div>
+        </div>
+      </SerifSlide>
+    ),
+  },
+  // 7 Live demo: then switch to the links ------------------------------------
   {
     title: "Live demo",
     body: (
@@ -334,41 +365,6 @@ export const SLIDES: readonly Slide[] = [
             Don&rsquo;t take our word for it. Scan and watch the line live.
             <span className="block text-[22px] font-normal text-muted">tap-and-select.vercel.app/live · no sign-in</span>
           </p>
-        </div>
-      </SerifSlide>
-    ),
-  },
-  // 7 Results: does it work? ---------------------------------------------------
-  {
-    title: "Does it work?",
-    body: (
-      <SerifSlide title="Does it work? What we measured">
-        <div className="grid grid-cols-3 gap-4">
-          <Stat value={formatAccuracy(voice.value)} source="our model in Edge Impulse">
-            of stop names understood, on {voice.kind === "test" ? "recordings it never heard" : "our test recordings"} (
-            {pitchValue(N.voiceSamples)} recordings, {pitchValue(N.voiceSpeakers)} voices)
-          </Stat>
-          <Stat value={pitchPercent(N.swipeCorrect, N.swipeTries)} source="our own tests on the board">
-            of hand swipes picked the right stop ({pitchValue(N.swipeCorrect)} of {pitchValue(N.swipeTries)} tries)
-          </Stat>
-          <Stat value={pitchValue(N.modelRamKb, " KB")} source="Edge Impulse">
-            of memory is all the voice model needs, less than one phone photo. No internet needed.
-          </Stat>
-          <Stat value={pitchValue(N.surveyGaveUpPct, "%")} source="our survey">
-            of {pitchValue(N.surveyRespondents)} commuters gave up waiting for a bus last month
-          </Stat>
-          <Stat value={pitchValue(N.audienceJoined)} source="live data from the demo">
-            of you joined the line during the demo
-          </Stat>
-          <div className="rounded-card border-2 border-dashed border-warn bg-surface p-5">
-            <span className="inline-block rounded-pill border-2 border-warn px-3 text-[18px] font-bold uppercase tracking-[0.06em]">
-              Estimate
-            </span>
-            <p className="mt-2 text-[24px] leading-snug">
-              Outside rush hour, a bus can leave with about 12 people on about 50 seats: three in four seats empty
-              <Ref n={[5, 6]} />.
-            </p>
-          </div>
         </div>
       </SerifSlide>
     ),

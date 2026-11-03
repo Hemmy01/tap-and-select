@@ -404,8 +404,8 @@ The `https://` address is required for Web Serial on the kiosk and GPS on the ph
 `/pitch` is the presentation, sized for a 7-minute pitch plus demo, told as one story in plain words:
 a hook question and Jack, a real commuter quoted by KT Press, who gets home 3+ hours after work →
 "Jack isn't alone" (four numbers, each with its source) → why nobody sees him → imagine his evening
-with Tap&Select (six-panel storyboard) → How it works (five-panel comic) → live demo with the `/live`
-QR → results → back to Jack, boarding → references. ← → or Space to move, **F** fullscreen. Story
+with Tap&Select (six-panel storyboard) → How it works (five-panel comic) → results → live demo with
+the kiosk, dashboard and `/live` QR links → back to Jack, boarding → references. ← → or Space to move, **F** fullscreen. Story
 slides are in Times New Roman. Slides: `apps/web/components/pitch/slides.tsx`; comics:
 `JourneyComic.tsx`, `IdeaStoryboard.tsx` and Jack's panels in `StoryPanels.tsx`; sources: `content.tsx`
 (`PITCH_REFERENCES`). The imagined parts of Jack's story are labelled "Imagine".
