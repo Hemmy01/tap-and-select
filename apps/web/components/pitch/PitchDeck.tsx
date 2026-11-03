@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useSyncExternalStore, type ReactNode } from "react";
+import { PrintButton } from "@/components/about/PrintButton";
 import { actionForKey, progressSegments, slideFromHash } from "@/lib/pitch-nav";
 import { SLIDES } from "./slides";
 
@@ -143,7 +144,10 @@ function Presenter() {
         <span className="num absolute right-16 bottom-5 text-[16px] text-muted">
           {String(slide).padStart(2, "0")} / {COUNT}
         </span>
-        <span className="absolute bottom-5 left-16 text-[14px] text-muted">← → move · F fullscreen</span>
+        <div className="absolute bottom-3 left-16 flex items-center gap-4">
+          <PrintButton />
+          <span className="text-[14px] text-muted">← → move · F fullscreen</span>
+        </div>
       </div>
 
       <nav className="sr-only" aria-label="Slides">
