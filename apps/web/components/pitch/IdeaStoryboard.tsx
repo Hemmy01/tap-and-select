@@ -15,7 +15,7 @@ function Ground() {
   return <line x1="6" y1="168" x2="314" y2="168" stroke={LINE} strokeWidth="3" strokeLinecap="round" />;
 }
 
-function Pill({ x, y, w, children }: { x: number; y: number; w: number; children: ReactNode }) {
+export function Pill({ x, y, w, children }: { x: number; y: number; w: number; children: ReactNode }) {
   return (
     <g>
       <rect x={x} y={y} width={w} height="26" rx="13" fill={SURFACE} stroke={INK} strokeWidth="2.5" />
@@ -26,7 +26,7 @@ function Pill({ x, y, w, children }: { x: number; y: number; w: number; children
   );
 }
 
-function Bus({ x, y, doorOpen = false }: { x: number; y: number; doorOpen?: boolean }) {
+export function Bus({ x, y, doorOpen = false }: { x: number; y: number; doorOpen?: boolean }) {
   return (
     <g transform={`translate(${x} ${y})`}>
       <rect x="0" y="0" width="150" height="66" rx="12" fill={R2} stroke={INK} strokeWidth="3" />
