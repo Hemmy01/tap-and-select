@@ -1,25 +1,28 @@
 import { describe, expect, it } from "vitest";
-import { PITCH_NUMBERS, pitchValue } from "@/lib/pitch";
+import { PITCH_NUMBERS, pitchPercent, pitchValue } from "@/lib/pitch";
 import { PITCH_REFERENCES, referenceYear } from "@/components/pitch/content";
 
 describe("content/pitch.json", () => {
-  it("holds only numbers or null, with percents in 0–100", () => {
+  it("holds only numbers or null, with sensible ranges", () => {
     for (const value of Object.values(PITCH_NUMBERS)) {
       expect(value === null || Number.isFinite(value)).toBe(true);
     }
-    for (const key of ["voiceAccuracy", "gestureBefore", "gestureAfter", "surveyGaveUpPct"] as const) {
-      const value = PITCH_NUMBERS[key];
-      if (value === null) continue;
-      expect(value).toBeGreaterThanOrEqual(0);
-      expect(value).toBeLessThanOrEqual(100);
+    const { swipeCorrect, swipeTries, surveyGaveUpPct } = PITCH_NUMBERS;
+    if (swipeCorrect !== null && swipeTries !== null) expect(swipeCorrect).toBeLessThanOrEqual(swipeTries);
+    if (surveyGaveUpPct !== null) {
+      expect(surveyGaveUpPct).toBeGreaterThanOrEqual(0);
+      expect(surveyGaveUpPct).toBeLessThanOrEqual(100);
     }
   });
 
   it("shows a dash for a missing value, never a guess", () => {
     expect(pitchValue(null)).toBe("—");
-    expect(pitchValue(null, "%")).toBe("—");
-    expect(pitchValue(95.8, "%")).toBe("95.8%");
+    expect(pitchValue(null, " KB")).toBe("—");
+    expect(pitchValue(20.4, " KB")).toBe("20.4 KB");
     expect(pitchValue(1100)).toBe("1,100");
+    expect(pitchPercent(73, 80)).toBe("91%");
+    expect(pitchPercent(null, 80)).toBe("—");
+    expect(pitchPercent(3, 0)).toBe("—");
   });
 });
 
