@@ -32,11 +32,15 @@ Speakers: 4 (Emmanuel, Samira, Kevin, Kenny). Train / test split: _80 / 20_
 
 | | Value |
 |---|---|
-| Validation accuracy | _pending: copy from Edge Impulse → Classifier_ |
-| Test accuracy | _pending: Edge Impulse → Model testing_ |
+| Validation accuracy | **92%**: Edge Impulse → Classifier, held-out clips from the 3 training voices |
+| Test accuracy | **59%**: Edge Impulse → Model testing, a 4th team member's voice the model never heard |
 | Confusion matrix | `ml/results/voice-confusion.png` |
 
-When known, put them in `apps/web/content/models.json` (`validationAccuracy`, `testAccuracy`, 0–1).
+Recorded in `apps/web/content/models.json` (`validationAccuracy` 0.92, `testAccuracy` 0.59).
+
+The gap is the finding: the model knows the voices it learned, but one new voice is right only about
+6 times in 10. The test is one speaker, so treat 59% as a first estimate. Next: many more voices and
+accents. Until then the kiosk always asks to confirm, and a swipe or a tap on the screen also works.
 
 ## On the board (10 tries each, firmware/README.md "Testing the voice build")
 

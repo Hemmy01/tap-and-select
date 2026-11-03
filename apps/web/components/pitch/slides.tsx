@@ -8,7 +8,7 @@ import type { ReactNode } from "react";
 import { IdeaStoryboard } from "./IdeaStoryboard";
 import { JourneyComic } from "./JourneyComic";
 import { JackBoards, JackWaits, NobodySeesJack } from "./StoryPanels";
-import { formatAccuracy, headlineAccuracy, MODELS } from "@/lib/models";
+import { formatAccuracy, MODELS } from "@/lib/models";
 import { PITCH_SECTIONS, type PitchSection } from "@/lib/pitch-nav";
 import { PITCH_NUMBERS as N, pitchPercent, pitchValue } from "@/lib/pitch";
 import { PITCH_REFERENCES, ReferenceLine, referenceYear, TEAM } from "./content";
@@ -140,7 +140,9 @@ const SUMMARY = [
 
 const DEMO_STEPS = ["Tap card", "Say “Remera” or swipe", "Confirm", "Get a ticket", "Control room sends a bus", "Bus arrives"];
 
-const voice = headlineAccuracy(MODELS.voice);
+/** Voice model: validation set (voices it learned) and test set (a voice it never heard). */
+const voiceKnown = MODELS.voice.validationAccuracy;
+const voiceNew = MODELS.voice.testAccuracy;
 
 // ---------------------------------------------------------------------------
 // The "How it works" comic slide.
@@ -293,14 +295,20 @@ export const SLIDES: readonly Slide[] = [
     body: (
       <SerifSlide title="Does it work? What we measured">
         <div className="grid grid-cols-3 gap-4">
-          {voice.value === null ? (
+          {voiceNew === null ? (
             <Stat value={`${pitchValue(N.voiceSpeakers)} voices`} source="our model in Edge Impulse">
               {pitchValue(N.voiceSamples)} recordings of 4 stop names, from our team. Next: more voices and accents.
             </Stat>
           ) : (
-            <Stat value={formatAccuracy(voice.value)} source="our model in Edge Impulse">
-              of stop names understood, on {voice.kind === "test" ? "recordings it never heard" : "our test recordings"} (
-              {pitchValue(N.voiceSamples)} recordings, {pitchValue(N.voiceSpeakers)} voices)
+            <Stat
+              value={
+                <>
+                  {formatAccuracy(voiceKnown)} <span className="text-muted">→</span> {formatAccuracy(voiceNew)}
+                </>
+              }
+              source="our model in Edge Impulse"
+            >
+              of stop names understood: on the voices it learned, then on a new voice it never heard
             </Stat>
           )}
           <Stat value={pitchPercent(N.swipeCorrect, N.swipeTries)} source="our own tests on the board">
