@@ -27,7 +27,7 @@ Architecture diagrams: [`docs/architecture.md`](docs/architecture.md).
 | Bus driver | `/bus` | phone in the bus (needs HTTPS for GPS) |
 | Live board | `/live` | the audience's phones, via the QR code on the pitch; public and read-only |
 | Users | `/admin/users` | admins: roles and drivers' buses |
-| Pitch | `/pitch` | the presentation (7 slides, printable) |
+| Pitch | `/pitch` | the presentation (8 slides, printable) |
 | About | `/about` | judges; printable |
 
 ---
@@ -401,11 +401,14 @@ The `https://` address is required for Web Serial on the kiosk and GPS on the ph
 
 ## Pitch
 
-`/pitch` is the presentation, sized for a 7-minute pitch plus demo: hook, problem, gaps, solution,
-the five-panel "How it works" comic, results and conclusion (← → or Space to move, **F**
-fullscreen). The six slides are in Times New Roman; each cites only its own sources at the foot.
-Slides live in `apps/web/components/pitch/slides.tsx`, the comic in `JourneyComic.tsx`, the
-renumbered sources in `content.tsx` (`PITCH_REFERENCES`).
+`/pitch` is the presentation, sized for a 7-minute pitch plus demo and told as one story: Jack, a
+real commuter quoted by KT Press, waits from 6 PM to after 9 PM (hook) → he isn't alone (problem) →
+why nobody sees him (gaps) → imagine his evening with Tap&Select (solution, six-panel storyboard) →
+How it works (the five-panel comic, unchanged) → live demo with the `/live` QR → results → back to
+Jack, boarding (conclusion). ← → or Space to move, **F** fullscreen. Story slides are in Times New
+Roman and cite only their own sources at the foot. Slides: `apps/web/components/pitch/slides.tsx`;
+comics: `JourneyComic.tsx`, `IdeaStoryboard.tsx` and Jack's panels in `StoryPanels.tsx`; renumbered
+sources: `content.tsx` (`PITCH_REFERENCES`). The imagined parts of Jack's story are labelled "Imagine".
 
 **Numbers to fill in:** `apps/web/content/pitch.json`. A `null` shows as "—" on the results slide;
 never put a guess there.
