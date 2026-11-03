@@ -140,8 +140,7 @@ const SUMMARY = [
 
 const DEMO_STEPS = ["Tap card", "Say “Remera” or swipe", "Confirm", "Get a ticket", "Control room sends a bus", "Bus arrives"];
 
-/** Voice model: validation set (voices it learned) and test set (a voice it never heard). */
-const voiceKnown = MODELS.voice.validationAccuracy;
+/** Voice model on a voice it never heard (Edge Impulse test set). */
 const voiceNew = MODELS.voice.testAccuracy;
 
 // ---------------------------------------------------------------------------
@@ -295,24 +294,11 @@ export const SLIDES: readonly Slide[] = [
     body: (
       <SerifSlide title="Does it work? What we measured">
         <div className="grid grid-cols-3 gap-4">
-          {voiceNew === null ? (
-            <Stat value={`${pitchValue(N.voiceSpeakers)} voices`} source="our model in Edge Impulse">
-              {pitchValue(N.voiceSamples)} recordings of 4 stop names, from our team. Next: more voices and accents.
-            </Stat>
-          ) : (
-            <Stat
-              value={
-                <>
-                  {formatAccuracy(voiceKnown)} <span className="text-muted">→</span> {formatAccuracy(voiceNew)}
-                </>
-              }
-              source="our model in Edge Impulse"
-            >
-              of stop names understood: on the voices it learned, then on a new voice it never heard
-            </Stat>
-          )}
           <Stat value={pitchPercent(N.swipeCorrect, N.swipeTries)} source="our own tests on the board">
             of hand swipes picked the right stop ({pitchValue(N.swipeCorrect)} of {pitchValue(N.swipeTries)} tries)
+          </Stat>
+          <Stat value={formatAccuracy(voiceNew)} source="our model in Edge Impulse">
+            of stop names understood, on a new voice it never heard. Next: more voices and accents.
           </Stat>
           <Stat value={pitchValue(N.modelRamKb, " KB")} source="Edge Impulse">
             of memory is all the voice model needs, less than one phone photo. No internet needed.
