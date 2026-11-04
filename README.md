@@ -242,6 +242,10 @@ joined today, and **Close joining** after the demo. The rules are in `join_from_
 call it): only while open, one waiting ticket per phone (a random id kept on the phone, stored as
 card `PHONE-<id>`, method `manual`), and at most `audience_join_max` (150) phone tickets a day.
 Reset demo clears them like any ticket.
+Under the ticket the phone shows the line (people ahead, waiting for that route, and when HQ sends a
+bus, from `join_status`), the coming bus moving down its route's stops with free seats, and **Leave
+the line** with the kiosk's reasons (`cancel_from_phone`, works after joining closes; counted in
+**Why people left**).
 
 **Simulate drive (presentation aid).** On the dashboard, a released bus has **Simulate drive**: it
 moves along its real route from the terminal to the kiosk in about a minute (one step every 1.5 s),
