@@ -7,6 +7,7 @@ import { getDestination } from "@/lib/destinations";
 import { BUS_STATUS_LABEL } from "./labels";
 import { OccupancyPanel } from "./OccupancyPanel";
 import { TrackingPanel } from "./TrackingPanel";
+import { WaitingStopsPanel } from "./WaitingStopsPanel";
 
 interface BusConsoleProps {
   bus: Bus;
@@ -70,6 +71,8 @@ export function BusConsole({
       <div aria-live="polite">
         <StatusLine bus={bus} />
       </div>
+
+      <WaitingStopsPanel bus={bus} />
 
       <TrackingPanel bus={bus} stopName={stopName} {...tracking} />
 

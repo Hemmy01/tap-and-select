@@ -183,7 +183,7 @@ Stop coordinates are approximate.
 releases that bus, GPS sharing starts by itself; it stops by itself when the bus arrives at the
 end of its route (the kiosk). While tracking, the page shows **Tracking on** and keeps the screen
 awake (Screen Wake Lock API). Phones pause location for hidden pages and locked screens, so the
-page tells the driver how long tracking was lost and how to unblock location if it was refused.
+page tells the driver how long tracking was lost and how to unblock location if it was refused. The page also lists every stop on the bus's route, terminal first, with how many people are waiting there for that bus (live), marking the next stop and the ones already passed.
 
 **Seats and occupancy.** Every bus has 40 seats + 30 standing places and an `occupancy` count.
 Boarding at the kiosk (`mark_bus_arrived`) takes at most the bus's free places and adds them to
