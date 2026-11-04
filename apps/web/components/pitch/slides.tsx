@@ -221,6 +221,10 @@ export const SLIDES: readonly Slide[] = [
         <p className="mt-6 border-t-2 border-ink pt-4 text-[30px] font-bold">
           More people, more riders, and still nobody sees who is waiting.
         </p>
+        <blockquote className="mt-6 border-l-4 border-ink pl-5">
+          <p className="text-[26px] italic leading-snug">&ldquo;I waited forever, 1.5 hours past, I took a bike.&rdquo;</p>
+          <footer className="mt-1 text-[18px] text-muted">A commuter in our survey (Nov 2026)</footer>
+        </blockquote>
       </SerifSlide>
     ),
   },
@@ -303,8 +307,8 @@ export const SLIDES: readonly Slide[] = [
           <Stat value={pitchValue(N.modelRamKb, " KB")} source="Edge Impulse">
             of memory is all the voice model needs, less than one phone photo. No internet needed.
           </Stat>
-          <Stat value={pitchValue(N.surveyGaveUpPct, "%")} source="our survey">
-            of {pitchValue(N.surveyRespondents)} commuters gave up waiting for a bus last month
+          <Stat value={pitchPercent(N.surveyUnsureWhen, N.surveyRespondents)} source="our survey (Nov 2026)">
+            of {pitchValue(N.surveyRespondents)} commuters say not knowing when the bus will come keeps them off it
           </Stat>
           <Stat value={pitchValue(N.audienceJoined)} source="live data from the demo">
             of you joined the line during the demo

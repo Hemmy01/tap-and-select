@@ -2,6 +2,8 @@
 // shows as "—" on the slide until it is measured. Never fill one with a guess.
 // The voice model's accuracy is not here: it comes from content/models.json.
 // swipeCorrect/swipeTries: ml/results/gesture-trials.md (fw 0.3.1 swipes).
+// surveyRespondents/surveyUnsureWhen: our commuter survey, 1–4 Nov 2026 ("What stops you
+// from taking the bus more often?", ticked "Unsure when it will arrive").
 
 import raw from "@/content/pitch.json";
 
@@ -12,8 +14,8 @@ export interface PitchNumbers {
   swipeCorrect: number | null;
   swipeTries: number | null;
   surveyRespondents: number | null;
-  /** Percent, 0–100. */
-  surveyGaveUpPct: number | null;
+  /** Respondents who said not knowing when the bus will come keeps them off it. */
+  surveyUnsureWhen: number | null;
   audienceJoined: number | null;
 }
 

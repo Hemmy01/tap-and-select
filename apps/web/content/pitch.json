@@ -4,7 +4,7 @@
   "modelRamKb": 20.4,
   "swipeCorrect": 73,
   "swipeTries": 80,
-  "surveyRespondents": null,
-  "surveyGaveUpPct": null,
+  "surveyRespondents": 71,
+  "surveyUnsureWhen": 43,
   "audienceJoined": null
 }
