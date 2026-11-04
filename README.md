@@ -410,7 +410,7 @@ slides are in Times New Roman. Slides: `apps/web/components/pitch/slides.tsx`; c
 `JourneyComic.tsx`, `IdeaStoryboard.tsx` and Jack's panels in `StoryPanels.tsx`; sources: `content.tsx`
 (`PITCH_REFERENCES`). The imagined parts of Jack's story are labelled "Imagine".
 
-**Numbers to fill in:** `apps/web/content/pitch.json` (survey, audience). The voice accuracy comes
+**Numbers to fill in:** `apps/web/content/pitch.json` (audience; the survey numbers are from our 1–4 Nov 2026 commuter survey). The voice accuracy comes
 from `apps/web/content/models.json` (`testAccuracy`, 0–1). A `null` shows as "—"; never put a guess there.
 
 **Print / PDF:** `/pitch?print=1`, or Cmd/Ctrl+P on the deck, gives one slide per A4 landscape page

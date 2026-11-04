@@ -7,11 +7,10 @@ describe("content/pitch.json", () => {
     for (const value of Object.values(PITCH_NUMBERS)) {
       expect(value === null || Number.isFinite(value)).toBe(true);
     }
-    const { swipeCorrect, swipeTries, surveyGaveUpPct } = PITCH_NUMBERS;
+    const { swipeCorrect, swipeTries, surveyRespondents, surveyUnsureWhen } = PITCH_NUMBERS;
     if (swipeCorrect !== null && swipeTries !== null) expect(swipeCorrect).toBeLessThanOrEqual(swipeTries);
-    if (surveyGaveUpPct !== null) {
-      expect(surveyGaveUpPct).toBeGreaterThanOrEqual(0);
-      expect(surveyGaveUpPct).toBeLessThanOrEqual(100);
+    if (surveyUnsureWhen !== null && surveyRespondents !== null) {
+      expect(surveyUnsureWhen).toBeLessThanOrEqual(surveyRespondents);
     }
   });
 
