@@ -613,6 +613,8 @@ export type Database = {
         Returns: number
       }
       is_trusted_caller: { Args: never; Returns: boolean }
+      join_from_phone: { Args: { p_dest: string; p_device: string }; Returns: Json }
+      join_status: { Args: never; Returns: Json }
       kiosk_stop_id: { Args: never; Returns: string }
       live_board: { Args: never; Returns: Json }
       log_selection: {
@@ -646,6 +648,7 @@ export type Database = {
         }[]
       }
       run_dispatch: { Args: never; Returns: undefined }
+      set_audience_join: { Args: { p_open: boolean }; Returns: Json }
       set_user_role: {
         Args: { p_bus?: string; p_role: string; p_user: string }
         Returns: Json

@@ -5,6 +5,7 @@ import { Button } from "@/components/Button";
 import { KigaliClock } from "@/components/KigaliClock";
 import { HomeLink } from "@/components/HomeLink";
 import type { Totals } from "@/lib/dashboard";
+import { AudienceJoinControl } from "./AudienceJoinControl";
 import { ResetDemoButton } from "./ResetDemoButton";
 
 interface DashboardHeaderProps {
@@ -51,6 +52,7 @@ export function DashboardHeader({
           <Stat label="Waiting now" value={totals?.waiting ?? null} />
           <Stat label="Boarded today" value={totals?.boardedToday ?? null} />
           <Stat label="Buses on the way" value={totals?.onTheWay ?? null} />
+          {canDispatch ? <AudienceJoinControl /> : null}
           {canDispatch ? (
             <Button
               size="lg"

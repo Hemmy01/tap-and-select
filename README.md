@@ -228,10 +228,20 @@ rate (cancelled today ÷ tickets issued or cancelled today).
 
 **Live board (`/live`).** A public, read-only page for the audience: departures, queue counts per
 destination, **Now boarding** and the map, refreshed every 5 seconds through `live_board()`, the only
-function the anon key may call (it returns counts and bus positions, never card ids). It is not listed
+function the anon key may read (it returns counts and bus positions, never card ids). It is not listed
 on the home page; people reach it from its QR code (`apps/web/public/pitch/live-qr.svg`) or the
 About page. Regenerate the QR code if the URL changes:
 `npx qrcode@1.5.4 -t svg -e M -q 2 -d 111418 -l ffffff -o apps/web/public/pitch/live-qr.svg "<url>/live"`.
+
+**Audience join (`/join`).** During the pitch the room joins the kiosk's line from their phones, no
+sign-in: tap where you're going, get a real ticket at Kiosk 1 (spoken aloud by the phone), and follow
+it until "Your bus is here" (vibrates and speaks while the page is open). The pitch's demo slide
+shows its QR code (`apps/web/public/pitch/join-qr.svg`, same command with `/join`). It is **closed
+by default**: a dispatcher presses **Open joining** in the dashboard header, which also counts phones
+joined today, and **Close joining** after the demo. The rules are in `join_from_phone` (anon may
+call it): only while open, one waiting ticket per phone (a random id kept on the phone, stored as
+card `PHONE-<id>`, method `manual`), and at most `audience_join_max` (150) phone tickets a day.
+Reset demo clears them like any ticket.
 
 **Simulate drive (presentation aid).** On the dashboard, a released bus has **Simulate drive**: it
 moves along its real route from the terminal to the kiosk in about a minute (one step every 1.5 s),
