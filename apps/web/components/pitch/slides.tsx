@@ -72,15 +72,15 @@ function Stat({ value, source, children }: { value: ReactNode; source: ReactNode
   );
 }
 
-/** QR code for the public live board (public/pitch/live-qr.svg, made with `npx qrcode`). */
-function LiveQr({ size }: { size: number }) {
+/** QR code for the audience join page (public/pitch/join-qr.svg, made with `npx qrcode`). */
+function JoinQr({ size }: { size: number }) {
   return (
     <Image
-      src="/pitch/live-qr.svg"
+      src="/pitch/join-qr.svg"
       width={size}
       height={size}
       unoptimized
-      alt="QR code: tap-and-select.vercel.app/live"
+      alt="QR code: tap-and-select.vercel.app/join"
       className="rounded-md border border-line bg-white p-1"
     />
   );
@@ -364,10 +364,10 @@ export const SLIDES: readonly Slide[] = [
           </a>
         </div>
         <div className="mt-10 flex items-center gap-6 rounded-card border-2 border-ink bg-surface px-6 py-3">
-          <LiveQr size={140} />
+          <JoinQr size={140} />
           <p className="text-[28px] font-bold leading-snug">
-            Don&rsquo;t take our word for it. Scan and watch the line live.
-            <span className="block text-[22px] font-normal text-muted">tap-and-select.vercel.app/live · no sign-in</span>
+            Don&rsquo;t take our word for it. Scan, pick a stop, and watch your ticket appear on our screen.
+            <span className="block text-[22px] font-normal text-muted">tap-and-select.vercel.app/join · no sign-in</span>
           </p>
         </div>
       </SerifSlide>
