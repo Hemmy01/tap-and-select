@@ -156,3 +156,43 @@ export function trackBusFor(
   if (progress.stripFraction === null) return null;  // no GPS yet, or off the route
   return { bus, route, progress, line: busProgressLine(bus, progress, words) };
 }
+
+export interface StopWaiting {
+  id: string;
+  name: string;
+  waiting: number;
+  /** The bus has already left this stop on this trip. */
+  passed: boolean;
+  /** The stop the bus reaches next. */
+  next: boolean;
+}
+
+/**
+ * People waiting for this bus's destination at each stop of its route, terminal first.
+ * `elsewhere` counts tickets for the destination at stops off this route.
+ */
+export function waitingAlongRoute(
+  bus: Bus,
+  route: Route | undefined,
+  tickets: readonly { stop_id: string; destination: string }[],
+): { stops: StopWaiting[]; elsewhere: number } {
+  const counts = new Map<string, number>();
+  for (const t of tickets) {
+    if (t.destination === bus.destination) counts.set(t.stop_id, (counts.get(t.stop_id) ?? 0) + 1);
+  }
+  const routeStops = route?.stops ?? [];
+  const moving = bus.status === "on_the_way";
+  const lastIndex = moving && bus.last_stop_id ? routeStops.findIndex((s) => s.id === bus.last_stop_id) : -1;
+  const stops = routeStops.map((s, i) => ({
+    id: s.id,
+    name: s.name,
+    waiting: counts.get(s.id) ?? 0,
+    // The last stop itself may still be boarding, so only the ones before it count as passed.
+    passed: i < lastIndex,
+    next: moving && s.id === bus.next_stop_id,
+  }));
+  const onRoute = new Set(routeStops.map((s) => s.id));
+  let elsewhere = 0;
+  for (const [stop, n] of counts) if (!onRoute.has(stop)) elsewhere += n;
+  return { stops, elsewhere };
+}

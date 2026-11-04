@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Bus } from "@/lib/departures";
-import { busProgress, busProgressLine, evenStripFraction, trackBusFor, type Route } from "@/lib/routes";
+import { busProgress, busProgressLine, evenStripFraction, trackBusFor, waitingAlongRoute, type Route } from "@/lib/routes";
 
 // R2 as seeded: Giporoso → Gishushu → Kigali Heights → Kimihurura → Kiyovu → kiosk.
 const R2: Route = {
@@ -103,5 +103,37 @@ describe("trackBusFor", () => {
     expect(trackBusFor("REM", [bus({ stops_remaining: null, distance_remaining_m: null })], [R2])).toBeNull();
     expect(trackBusFor("REM", [bus({ status: "at_terminal" })], [R2])).toBeNull();
     expect(trackBusFor("REM", [bus()], [])).toBeNull();
+  });
+});
+
+describe("waitingAlongRoute", () => {
+  const tickets = [
+    { stop_id: "STOP-09", destination: "REM" },
+    { stop_id: "STOP-11", destination: "REM" },
+    { stop_id: "STOP-11", destination: "REM" },
+    { stop_id: "STOP-01", destination: "REM" },
+    { stop_id: "STOP-01", destination: "KIM" },
+    { stop_id: "STOP-99", destination: "REM" },
+  ];
+
+  it("counts this destination's riders at each stop, terminal first", () => {
+    const { stops, elsewhere } = waitingAlongRoute(bus({ next_stop_id: "STOP-11" }), R2, tickets);
+    expect(stops.map((s) => s.waiting)).toEqual([0, 1, 0, 0, 2, 1]);
+    expect(elsewhere).toBe(1);
+  });
+
+  it("marks stops before the last one as passed, and the next stop", () => {
+    const { stops } = waitingAlongRoute(bus({ next_stop_id: "STOP-11" }), R2, tickets);
+    expect(stops.map((s) => s.passed)).toEqual([true, true, true, false, false, false]);
+    expect(stops.find((s) => s.next)?.id).toBe("STOP-11");
+  });
+
+  it("passes nothing while the bus is not on the way", () => {
+    const { stops } = waitingAlongRoute(bus({ status: "at_terminal", next_stop_id: "STOP-11" }), R2, tickets);
+    expect(stops.some((s) => s.passed || s.next)).toBe(false);
+  });
+
+  it("puts everything elsewhere when the route is unknown", () => {
+    expect(waitingAlongRoute(bus(), undefined, tickets)).toEqual({ stops: [], elsewhere: 5 });
   });
 });
