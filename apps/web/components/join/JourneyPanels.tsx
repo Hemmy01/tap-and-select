@@ -19,7 +19,10 @@ export function LineInfo({
 }) {
   if (journey.ahead === null) return null;
   return (
-    <section aria-labelledby="line-title" className="rounded-card border border-line bg-surface p-5">
+    <section
+      aria-labelledby="line-title"
+      className="rounded-card border border-line bg-surface p-5"
+    >
       <h2 id="line-title" className="flex items-center gap-2 text-lg">
         <Users aria-hidden className="h-5 w-5 text-muted" />
         The line here
@@ -27,17 +30,23 @@ export function LineInfo({
       <dl className="mt-3 grid grid-cols-2 gap-4">
         <div>
           <dt className="text-sm text-muted">Ahead of you</dt>
-          <dd className="num text-[32px] font-bold leading-tight">{journey.ahead}</dd>
+          <dd className="num text-[32px] font-bold leading-tight">
+            {journey.ahead}
+          </dd>
         </div>
         <div>
           <dt className="text-sm text-muted">Waiting for {destName}</dt>
-          <dd className="num text-[32px] font-bold leading-tight">{journey.waitingHere}</dd>
+          <dd className="num text-[32px] font-bold leading-tight">
+            {journey.waitingHere}
+          </dd>
         </div>
       </dl>
       {!journey.bus && rule ? (
         <p className="mt-3 text-sm text-muted">
-          HQ sends a bus when the line fills <span className="num">{rule.releaseLoadPct}%</span> of one, or when
-          someone has waited <span className="num">{rule.maxWaitMinutes}</span> minutes.
+          HQ sends a bus when the line fills{" "}
+          <span className="num">{rule.releaseLoadPct}%</span> of one, or when
+          someone has waited <span className="num">{rule.maxWaitMinutes}</span>{" "}
+          {rule.maxWaitMinutes === 1 ? "minute" : "minutes"}.
         </p>
       ) : null}
     </section>
@@ -48,20 +57,35 @@ export function LineInfo({
  * The route as a list, terminal at the top and this stop at the bottom, with the bus
  * between the last stop it passed and the next one.
  */
-export function BusTracker({ journey, color }: { journey: PhoneJourney; color: string }) {
+export function BusTracker({
+  journey,
+  color,
+}: {
+  journey: PhoneJourney;
+  color: string;
+}) {
   const { bus, route, progress } = journey;
   if (!bus) return null;
   const stops = route?.stops ?? [];
   const last = progress?.lastIndex ?? null;
 
   return (
-    <section aria-labelledby="tracker-title" className="rounded-card border border-line bg-surface p-5">
+    <section
+      aria-labelledby="tracker-title"
+      className="rounded-card border border-line bg-surface p-5"
+    >
       <h2 id="tracker-title" className="flex items-center gap-2 text-lg">
         <BusFront aria-hidden className="h-5 w-5 text-muted" />
         Your bus
       </h2>
-      <p key={journey.line ?? bus.id} className="animate-tick mt-2 font-semibold" aria-live="polite">
-        {journey.boarding ? `Bus ${bus.id} is at the stop` : (journey.line ?? `Bus ${bus.id} is on the way`)}
+      <p
+        key={journey.line ?? bus.id}
+        className="animate-tick mt-2 font-semibold"
+        aria-live="polite"
+      >
+        {journey.boarding
+          ? `Bus ${bus.id} is at the stop`
+          : (journey.line ?? `Bus ${bus.id} is on the way`)}
       </p>
       {journey.places ? (
         <p className="mt-1 flex items-center gap-2 text-muted">
@@ -80,16 +104,34 @@ export function BusTracker({ journey, color }: { journey: PhoneJourney; color: s
                 <div className="flex items-center gap-3">
                   <span
                     aria-hidden
-                    className={clsx("h-4 w-4 shrink-0 rounded-full border-[3px]", here && "h-5 w-5 border-ink")}
-                    style={{ borderColor: here ? undefined : color, backgroundColor: passed && !here ? color : undefined }}
+                    className={clsx(
+                      "h-4 w-4 shrink-0 rounded-full border-[3px]",
+                      here && "h-5 w-5 border-ink",
+                    )}
+                    style={{
+                      borderColor: here ? undefined : color,
+                      backgroundColor: passed && !here ? color : undefined,
+                    }}
                   />
-                  <span className={clsx("py-1", here ? "font-semibold" : passed ? "text-muted" : undefined)}>
+                  <span
+                    className={clsx(
+                      "py-1",
+                      here
+                        ? "font-semibold"
+                        : passed
+                          ? "text-muted"
+                          : undefined,
+                    )}
+                  >
                     {here ? `You · ${stop.name}` : stop.name}
                   </span>
                 </div>
                 {/* The bus sits on the leg after the last stop it passed. */}
                 {i === last && !here ? (
-                  <div className="ml-[5px] flex items-center gap-3 border-l-[3px] py-1.5 pl-4" style={{ borderColor: color }}>
+                  <div
+                    className="ml-[5px] flex items-center gap-3 border-l-[3px] py-1.5 pl-4"
+                    style={{ borderColor: color }}
+                  >
                     <span
                       className="inline-flex items-center gap-1.5 rounded-pill px-2.5 py-1 text-sm font-semibold text-white"
                       style={{ backgroundColor: color }}
@@ -141,11 +183,16 @@ export function LeaveLine({
   }
 
   return (
-    <section aria-labelledby="leave-title" className="mt-4 rounded-card border border-line bg-surface p-5">
+    <section
+      aria-labelledby="leave-title"
+      className="mt-4 rounded-card border border-line bg-surface p-5"
+    >
       <h2 id="leave-title" className="text-lg">
         Why are you leaving?
       </h2>
-      <p className="mt-1 text-sm text-muted">It helps HQ see why people give up waiting.</p>
+      <p className="mt-1 text-sm text-muted">
+        It helps HQ see why people give up waiting.
+      </p>
       <ul className="mt-3 grid gap-2">
         {reasons.map((r) => (
           <li key={r.code}>
@@ -163,7 +210,9 @@ export function LeaveLine({
               className="flex min-h-14 w-full items-center justify-between rounded-card border border-line px-4 text-left transition-colors duration-200 ease-out hover:border-ink disabled:opacity-60"
             >
               {r.label}
-              {pending === r.code ? <span className="text-sm text-muted">Leaving…</span> : null}
+              {pending === r.code ? (
+                <span className="text-sm text-muted">Leaving…</span>
+              ) : null}
             </button>
           </li>
         ))}
@@ -173,7 +222,13 @@ export function LeaveLine({
           {error}
         </p>
       ) : null}
-      <Button variant="secondary" size="lg" className="mt-3 w-full" onClick={() => setOpen(false)} disabled={pending !== null}>
+      <Button
+        variant="secondary"
+        size="lg"
+        className="mt-3 w-full"
+        onClick={() => setOpen(false)}
+        disabled={pending !== null}
+      >
         Keep my place
       </Button>
     </section>

@@ -1,18 +1,37 @@
 import { describe, expect, it } from "vitest";
 import type { Bus } from "@/lib/departures";
-import { newDeviceId, parseCancelResult, parseJoinResult, parseJoinStatus, phoneJourney } from "@/lib/join";
+import {
+  newDeviceId,
+  parseCancelResult,
+  parseJoinResult,
+  parseJoinStatus,
+  phoneJourney,
+} from "@/lib/join";
 import type { LiveBoard } from "@/lib/live-board";
 import type { QueueToken } from "@/lib/queue";
 
 describe("parseJoinResult", () => {
   it("reads a new ticket and an existing one", () => {
-    expect(parseJoinResult({ status: "created", code: "R2-015", destination: "REM", position: 3 })).toEqual({
+    expect(
+      parseJoinResult({
+        status: "created",
+        code: "R2-015",
+        destination: "REM",
+        position: 3,
+      }),
+    ).toEqual({
       status: "created",
       code: "R2-015",
       destination: "REM",
       position: 3,
     });
-    expect(parseJoinResult({ status: "duplicate", code: "R2-015", destination: "REM" })).toEqual({
+    expect(
+      parseJoinResult({
+        status: "duplicate",
+        code: "R2-015",
+        destination: "REM",
+      }),
+    ).toEqual({
       status: "duplicate",
       code: "R2-015",
       destination: "REM",
@@ -67,9 +86,15 @@ describe("newDeviceId", () => {
 
 describe("parseCancelResult", () => {
   it("reads cancelled, already gone, and errors", () => {
-    expect(parseCancelResult({ status: "cancelled", code: "R2-001" })).toEqual({ status: "cancelled" });
-    expect(parseCancelResult({ status: "not_found", message: "x" })).toEqual({ status: "not_found" });
-    expect(parseCancelResult({ status: "error", message: "Unknown reason" })).toEqual({
+    expect(parseCancelResult({ status: "cancelled", code: "R2-001" })).toEqual({
+      status: "cancelled",
+    });
+    expect(parseCancelResult({ status: "not_found", message: "x" })).toEqual({
+      status: "not_found",
+    });
+    expect(
+      parseCancelResult({ status: "error", message: "Unknown reason" }),
+    ).toEqual({
       status: "error",
       message: "Unknown reason",
     });
@@ -81,13 +106,41 @@ describe("phoneJourney", () => {
     route: "R2",
     terminalRadiusM: 150,
     stops: [
-      { id: "STOP-03", name: "Giporoso (Remera)", lat: -1.96, lng: 30.1, distanceM: 0 },
-      { id: "STOP-10", name: "Kimihurura", lat: -1.95, lng: 30.08, distanceM: 3000 },
-      { id: "STOP-11", name: "Kiyovu", lat: -1.947, lng: 30.07, distanceM: 4700 },
-      { id: "STOP-01", name: "Kiosk 1 (Demo)", lat: -1.944, lng: 30.06, distanceM: 5700 },
+      {
+        id: "STOP-03",
+        name: "Giporoso (Remera)",
+        lat: -1.96,
+        lng: 30.1,
+        distanceM: 0,
+      },
+      {
+        id: "STOP-10",
+        name: "Kimihurura",
+        lat: -1.95,
+        lng: 30.08,
+        distanceM: 3000,
+      },
+      {
+        id: "STOP-11",
+        name: "Kiyovu",
+        lat: -1.947,
+        lng: 30.07,
+        distanceM: 4700,
+      },
+      {
+        id: "STOP-01",
+        name: "Kiosk 1 (Demo)",
+        lat: -1.944,
+        lng: 30.06,
+        distanceM: 5700,
+      },
     ],
   };
-  const token = (id: number, code: string, destination = "REM"): QueueToken => ({
+  const token = (
+    id: number,
+    code: string,
+    destination = "REM",
+  ): QueueToken => ({
     id,
     code,
     destination,
@@ -117,7 +170,12 @@ describe("phoneJourney", () => {
   const board = (buses: Bus[]): LiveBoard => ({
     stop: { id: "STOP-01", name: "Kiosk 1 (Demo)" },
     buses,
-    tokens: [token(1, "R2-001"), token(2, "R2-002"), token(3, "R3-001", "KIM"), token(4, "R2-003")],
+    tokens: [
+      token(1, "R2-001"),
+      token(2, "R2-002"),
+      token(3, "R3-001", "KIM"),
+      token(4, "R2-003"),
+    ],
     networkWaiting: {},
     routes: [route],
     updatedAt: null,
@@ -125,7 +183,13 @@ describe("phoneJourney", () => {
 
   it("counts who is ahead and waiting for the route, with no bus yet", () => {
     const j = phoneJourney("R2-003", "REM", board([bus()]));
-    expect(j).toMatchObject({ ahead: 2, waitingHere: 3, bus: null, places: null, progress: null });
+    expect(j).toMatchObject({
+      ahead: 2,
+      waitingHere: 3,
+      bus: null,
+      places: null,
+      progress: null,
+    });
   });
 
   it("follows the bus on the way, with its free places", () => {
@@ -142,11 +206,17 @@ describe("phoneJourney", () => {
     expect(j.bus?.id).toBe("R2-01");
     expect(j.places).toBe("32 seats + 30 standing free");
     expect(j.progress?.lastIndex).toBe(1);
-    expect(j.line).toBe("Bus R2-01 · passed Kimihurura · 2 stops away · about 4 min");
+    expect(j.line).toBe(
+      "Bus R2-01 · passed Kimihurura · 2 stops away · about 4 min",
+    );
   });
 
   it("knows the bus is boarding, and stops counting once you're not waiting", () => {
-    const j = phoneJourney("R9-999", "REM", board([bus({ status: "arrived", last_stop_id: "STOP-01" })]));
+    const j = phoneJourney(
+      "R9-999",
+      "REM",
+      board([bus({ status: "arrived", last_stop_id: "STOP-01" })]),
+    );
     expect(j).toMatchObject({ ahead: null, boarding: true, progress: null });
   });
 });

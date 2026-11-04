@@ -8,7 +8,13 @@ import { getDestination } from "./destinations";
 import type { LiveBoard } from "./live-board";
 import { freeLabel } from "./occupancy";
 import { findTicket, queuePosition } from "./queue";
-import { busProgress, busProgressLine, routeFor, type BusProgress, type Route } from "./routes";
+import {
+  busProgress,
+  busProgressLine,
+  routeFor,
+  type BusProgress,
+  type Route,
+} from "./routes";
 
 export type JoinResult =
   | { status: "created"; code: string; destination: string; position: number }
@@ -28,8 +34,10 @@ export interface JoinStatus {
 
 type Obj = { [key: string]: Json | undefined };
 
-const obj = (v: Json | null): Obj | null => (v !== null && typeof v === "object" && !Array.isArray(v) ? v : null);
-const str = (o: Obj, k: string): string | null => (typeof o[k] === "string" ? (o[k] as string) : null);
+const obj = (v: Json | null): Obj | null =>
+  v !== null && typeof v === "object" && !Array.isArray(v) ? v : null;
+const str = (o: Obj, k: string): string | null =>
+  typeof o[k] === "string" ? (o[k] as string) : null;
 
 export function parseJoinResult(data: Json | null): JoinResult {
   const o = obj(data);
@@ -37,11 +45,21 @@ export function parseJoinResult(data: Json | null): JoinResult {
   const code = o && str(o, "code");
   const destination = o && str(o, "destination");
   if (status === "created" && code && destination) {
-    return { status, code, destination, position: typeof o?.position === "number" ? o.position : 1 };
+    return {
+      status,
+      code,
+      destination,
+      position: typeof o?.position === "number" ? o.position : 1,
+    };
   }
-  if (status === "duplicate" && code && destination) return { status, code, destination };
-  if (status === "closed" || status === "full" || status === "invalid") return { status };
-  return { status: "error", message: (o && str(o, "message")) ?? "Unexpected response from the server" };
+  if (status === "duplicate" && code && destination)
+    return { status, code, destination };
+  if (status === "closed" || status === "full" || status === "invalid")
+    return { status };
+  return {
+    status: "error",
+    message: (o && str(o, "message")) ?? "Unexpected response from the server",
+  };
 }
 
 export function parseJoinStatus(data: Json | null): JoinStatus {
@@ -50,8 +68,10 @@ export function parseJoinStatus(data: Json | null): JoinStatus {
   return {
     open: o?.open === true,
     joined: typeof o?.joined === "number" ? o.joined : 0,
-    releaseLoadPct: typeof o?.release_load_pct === "number" ? o.release_load_pct : 70,
-    maxWaitMinutes: typeof o?.max_wait_minutes === "number" ? o.max_wait_minutes : 15,
+    releaseLoadPct:
+      typeof o?.release_load_pct === "number" ? o.release_load_pct : 70,
+    maxWaitMinutes:
+      typeof o?.max_wait_minutes === "number" ? o.max_wait_minutes : 15,
     cancelReasons: reasons.flatMap((r) => {
       const ro = obj(r);
       const code = ro && str(ro, "code");
@@ -61,14 +81,20 @@ export function parseJoinStatus(data: Json | null): JoinStatus {
   };
 }
 
-export type CancelResult = { status: "cancelled" } | { status: "not_found" } | { status: "error"; message: string };
+export type CancelResult =
+  | { status: "cancelled" }
+  | { status: "not_found" }
+  | { status: "error"; message: string };
 
 /** cancel_from_phone: "not_found" means the ticket already left the line (boarded or cancelled). */
 export function parseCancelResult(data: Json | null): CancelResult {
   const o = obj(data);
   const status = o && str(o, "status");
   if (status === "cancelled" || status === "not_found") return { status };
-  return { status: "error", message: (o && str(o, "message")) ?? "Unexpected response from the server" };
+  return {
+    status: "error",
+    message: (o && str(o, "message")) ?? "Unexpected response from the server",
+  };
 }
 
 /** Everything the phone shows about its ticket's journey, from the public board. */
@@ -89,16 +115,31 @@ export interface PhoneJourney {
   line: string | null;
 }
 
-export function phoneJourney(code: string, destination: string, board: LiveBoard | null): PhoneJourney {
+export function phoneJourney(
+  code: string,
+  destination: string,
+  board: LiveBoard | null,
+): PhoneJourney {
   const tokens = board?.tokens ?? [];
   const buses = board?.buses ?? [];
   const row = findTicket(tokens, code);
   const position = row ? queuePosition(tokens, row) : null;
-  const waitingHere = tokens.filter((t) => t.status === "waiting" && t.destination === destination).length;
+  const waitingHere = tokens.filter(
+    (t) => t.status === "waiting" && t.destination === destination,
+  ).length;
   const status = departureStatus(destination, buses);
-  const bus = status.kind === "waiting" ? null : (buses.find((b) => b.id === status.busId) ?? null);
-  const route = bus ? (routeFor(board?.routes ?? [], getDestination(destination)?.route) ?? null) : null;
-  const progress = bus && route && status.kind === "on_the_way" ? busProgress(bus, route) : null;
+  const bus =
+    status.kind === "waiting"
+      ? null
+      : (buses.find((b) => b.id === status.busId) ?? null);
+  const route = bus
+    ? (routeFor(board?.routes ?? [], getDestination(destination)?.route) ??
+      null)
+    : null;
+  const progress =
+    bus && route && status.kind === "on_the_way"
+      ? busProgress(bus, route)
+      : null;
   const tracked = progress && progress.stripFraction !== null ? progress : null;
   return {
     ahead: position === null ? null : position - 1,
@@ -152,7 +193,8 @@ export function readSavedTicket(): SavedTicket | null {
     const v: unknown = raw ? JSON.parse(raw) : null;
     if (v && typeof v === "object" && "code" in v && "destination" in v) {
       const { code, destination } = v as Record<string, unknown>;
-      if (typeof code === "string" && typeof destination === "string") return { code, destination };
+      if (typeof code === "string" && typeof destination === "string")
+        return { code, destination };
     }
   } catch {
     // Unreadable: start over.
