@@ -14,14 +14,17 @@ import { DESTINATIONS, getDestination } from "@/lib/destinations";
 import {
   deviceId,
   JOIN_REFUSED,
+  parseCancelResult,
   parseJoinResult,
   parseJoinStatus,
+  phoneJourney,
   readSavedTicket,
   saveTicket,
   type JoinStatus,
   type SavedTicket,
 } from "@/lib/join";
 import { findTicket, queuePosition, ticketStatus, type TicketStatus } from "@/lib/queue";
+import { BusTracker, LeaveLine, LineInfo } from "./JourneyPanels";
 import { getSupabase, SUPABASE_CONFIG_ERROR } from "@/lib/supabase";
 import { useLiveBoard } from "@/lib/use-live-board";
 
@@ -43,7 +46,7 @@ function unlockSpeech() {
   }
 }
 
-/** Open or closed, and how many joined; refreshed while no ticket is shown. */
+/** Open or closed, how many joined, and the leave reasons; refreshed every few seconds. */
 function useJoinStatus(active: boolean): { status: JoinStatus | null; error: string | null } {
   const [state, setState] = useState<{ status: JoinStatus | null; error: string | null }>({
     status: null,
@@ -77,7 +80,8 @@ export function JoinApp() {
   const [position, setPosition] = useState<number | undefined>(undefined);
   const [pending, setPending] = useState<string | null>(null);
   const [refusal, setRefusal] = useState<string | null>(null);
-  const { status, error } = useJoinStatus(restored && !ticket);
+  const [left, setLeft] = useState<string | null>(null);
+  const { status, error } = useJoinStatus(restored);
 
   useEffect(() => {
     const restore = () => {
@@ -92,6 +96,7 @@ export function JoinApp() {
     unlockSpeech();
     setPending(code);
     setRefusal(null);
+    setLeft(null);
     const { data, error: err } = await getSupabase().rpc("join_from_phone", { p_dest: code, p_device: deviceId() });
     setPending(null);
     if (err) {
@@ -116,6 +121,18 @@ export function JoinApp() {
     setPosition(undefined);
   };
 
+  /** Gives up the place; returns an error message, or null when done. */
+  const leave = async (reason: string): Promise<string | null> => {
+    if (!ticket) return null;
+    const { data, error: err } = await getSupabase().rpc("cancel_from_phone", { p_device: deviceId(), p_reason: reason });
+    if (err) return err.message;
+    const result = parseCancelResult(data);
+    if (result.status === "error") return result.message;
+    startOver();
+    setLeft(result.status === "cancelled" ? `You left the line. ${ticket.code} is cancelled.` : `${ticket.code} is no longer in the line.`);
+    return null;
+  };
+
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-4 pb-10">
       <header className="flex h-16 items-center justify-between border-b border-line">
@@ -131,7 +148,14 @@ export function JoinApp() {
         ) : null}
 
         {!restored ? null : ticket ? (
-          <PhoneTicket ticket={ticket} position={position} onStartOver={startOver} />
+          <PhoneTicket
+            ticket={ticket}
+            position={position}
+            reasons={status?.cancelReasons ?? []}
+            rule={status}
+            onLeave={leave}
+            onStartOver={startOver}
+          />
         ) : (
           <>
             <h1 className="text-[32px] leading-tight">Join the line</h1>
@@ -139,6 +163,11 @@ export function JoinApp() {
               Where are you going? Tap a stop and you&apos;ll get a real ticket at Kiosk 1. Watch the big screen.
             </p>
 
+            {left ? (
+              <Banner tone="info" title={left} className="mt-5">
+                Changed your mind? Pick a stop to join again.
+              </Banner>
+            ) : null}
             {status && !status.open ? (
               <Banner tone="info" title="Joining is closed right now" className="mt-5">
                 It opens during the demo. This page updates by itself.
@@ -199,10 +228,16 @@ const STATUS_ICON = {
 function PhoneTicket({
   ticket,
   position: joinedPosition,
+  reasons,
+  rule,
+  onLeave,
   onStartOver,
 }: {
   ticket: SavedTicket;
   position: number | undefined;
+  reasons: readonly { code: string; label: string }[];
+  rule: JoinStatus | null;
+  onLeave: (reason: string) => Promise<string | null>;
   onStartOver: () => void;
 }) {
   const { board } = useLiveBoard();
@@ -211,6 +246,7 @@ function PhoneTicket({
   const row = board ? findTicket(board.tokens, ticket.code) : undefined;
   const position = row ? queuePosition(board?.tokens ?? [], row) : null;
   const status: TicketStatus = ticketStatus(row, ticket.destination, board?.buses ?? [], position);
+  const journey = phoneJourney(ticket.code, ticket.destination, board);
 
   // Seen on the board once, then gone: the trip ended or HQ reset the demo.
   const [seen, setSeen] = useState(false);
@@ -302,6 +338,13 @@ function PhoneTicket({
         </div>
       </article>
 
+      {!gone && status.kind !== "called" ? (
+        <div className="mt-4 space-y-4">
+          <BusTracker journey={journey} color={dest?.color ?? "var(--ink)"} />
+          <LineInfo journey={journey} destName={destName} rule={rule} />
+        </div>
+      ) : null}
+
       <Button
         size="lg"
         className="mt-4 w-full"
@@ -311,6 +354,8 @@ function PhoneTicket({
         Hear it
       </Button>
       <p className="mt-2 text-center text-sm text-muted">Keep this page open to hear when your bus arrives.</p>
+
+      {!gone && journey.ahead !== null && reasons.length > 0 ? <LeaveLine reasons={reasons} onLeave={onLeave} /> : null}
 
       {gone ? (
         <Button variant="primary" size="lg" className="mt-6 w-full" onClick={onStartOver}>

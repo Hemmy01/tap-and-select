@@ -585,6 +585,10 @@ export type Database = {
         Args: { p_card: string; p_reason: string }
         Returns: Json
       }
+      cancel_from_phone: {
+        Args: { p_device: string; p_reason: string }
+        Returns: Json
+      }
       choose_my_bus: { Args: { p_bus: string }; Returns: Json }
       complete_trip: {
         Args: { p_bus: string; p_source?: string }

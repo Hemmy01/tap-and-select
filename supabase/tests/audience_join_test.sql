@@ -74,6 +74,32 @@ begin
   perform pg_temp.ok((set_audience_join(false)->>'open')::boolean = false, '10 a trusted caller can close it');
 end $$;
 
+do $$
+declare
+  v jsonb;
+  c jsonb;
+begin
+  -- Leaving the line from the phone, with a reason; works while joining is closed.
+  update config set value = 1 where key = 'audience_join_open';
+  update config set value = 1000 where key = 'audience_join_max';
+  v := pg_temp.as_anon_join('NYA', 'leaver1234phone');
+  update config set value = 0 where key = 'audience_join_open';
+
+  perform set_config('request.jwt.claims', '{"role":"anon"}', true);
+  set local role anon;
+  c := cancel_from_phone('leaver1234phone', 'waited_too_long');
+  reset role;
+  perform set_config('request.jwt.claims', '', true);
+  perform pg_temp.ok(c->>'status' = 'cancelled' and c->>'code' = v->>'code', '11 a phone leaves the line, even when closed');
+  perform pg_temp.ok(exists (select 1 from queue_tokens where card_id = 'PHONE-LEAVER1234PHONE'
+                             and status = 'cancelled' and cancel_reason = 'waited_too_long'), '12 the reason is kept');
+  perform pg_temp.ok(cancel_from_phone('leaver1234phone', 'waited_too_long')->>'status' = 'not_found', '13 only once');
+  perform pg_temp.ok(cancel_from_phone('bad id!', 'other')->>'status' = 'error', '14 malformed device id is refused');
+  perform pg_temp.ok(jsonb_array_length(join_status()->'cancel_reasons') >= 3, '15 join_status lists the reasons');
+  perform pg_temp.ok((join_status()->>'release_load_pct')::numeric = config_value('release_load_pct', 70),
+                     '16 and the dispatch thresholds');
+end $$;
+
 select n, check_name as passed from results order by n;
 
 rollback;
