@@ -571,6 +571,7 @@ export type Database = {
       }
       app_role: { Args: never; Returns: string }
       approve_decision: { Args: { p_decision: number }; Returns: Json }
+      audience_joined_today: { Args: never; Returns: number }
       board_parked_bus: {
         Args: { p_dest: string; p_stop: string }
         Returns: Json
@@ -613,7 +614,10 @@ export type Database = {
         Returns: number
       }
       is_trusted_caller: { Args: never; Returns: boolean }
-      join_from_phone: { Args: { p_dest: string; p_device: string }; Returns: Json }
+      join_from_phone: {
+        Args: { p_dest: string; p_device: string }
+        Returns: Json
+      }
       join_status: { Args: never; Returns: Json }
       kiosk_stop_id: { Args: never; Returns: string }
       live_board: { Args: never; Returns: Json }
