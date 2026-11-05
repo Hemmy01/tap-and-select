@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from "react";
 import type { LatLng } from "./eta";
 import { simulateBusPosition } from "./rpc";
-import { DRIVE_STEP_MS, drivePath } from "./simulate-drive";
+import { DRIVE_STEP_MS, driveEtaMinutes, drivePath } from "./simulate-drive";
 import { getSupabase } from "./supabase";
 
 /** A copy of the record without one key. */
@@ -58,7 +58,7 @@ export function startDrive(busId: string, stops: readonly LatLng[]) {
 
   const tick = async (i: number) => {
     update((s) => ({ ...s, progress: { ...s.progress, [busId]: { step: i + 1, steps: path.length } } }));
-    const result = await simulateBusPosition(getSupabase(), busId, path[i]);
+    const result = await simulateBusPosition(getSupabase(), busId, path[i], driveEtaMinutes(i, path.length));
     if (!timers.has(busId)) return; // stopped meanwhile
     if (!result.ok) {
       update((s) => ({ ...s, errors: { ...s.errors, [busId]: result.message } }));
