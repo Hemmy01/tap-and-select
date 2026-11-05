@@ -77,11 +77,6 @@ function PrintPage({ label, number, children }: { label: string; number?: number
         <div className="relative bg-white" style={{ width: W, height: H, transform: `scale(${PRINT_SCALE})`, transformOrigin: "top left" }}>
           {number ? <PartsBar slide={number} /> : null}
           {children}
-          {number ? (
-            <span className="num absolute right-16 bottom-5 text-[16px] text-muted">
-              {String(number).padStart(2, "0")} / {COUNT}
-            </span>
-          ) : null}
         </div>
       </div>
     </section>
@@ -163,9 +158,6 @@ function Presenter() {
         >
           {current.body}
         </section>
-        <span className="num absolute right-16 bottom-5 text-[16px] text-muted">
-          {String(slide).padStart(2, "0")} / {COUNT}
-        </span>
         <div className="absolute bottom-3 left-16 flex items-center gap-4">
           <PrintButton />
           <span className="text-[14px] text-muted">
