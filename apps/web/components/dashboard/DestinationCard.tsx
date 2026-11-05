@@ -10,6 +10,8 @@ import type { DispatchPlaces } from "@/lib/occupancy";
 
 export interface CardActions {
   approve: (decision: Decision) => void;
+  /** Approve, then simulate the drive to the kiosk (about 20 s). */
+  approveAndDrive: (decision: Decision) => void;
   dismiss: (decision: Decision) => void;
   arrive: (bus: Bus) => void;
   reset: (bus: Bus) => void;
@@ -192,6 +194,17 @@ function Recommendation({ decision, actions }: { decision: Decision | undefined;
             Dismiss
           </Button>
         </div>
+      ) : null}
+      {actions ? (
+        <button
+          type="button"
+          onClick={() => actions.approveAndDrive(decision)}
+          disabled={actions.isPending(approveKey) || actions.isPending(dismissKey)}
+          className="mt-1 inline-flex h-11 items-center gap-2 text-sm font-semibold text-muted hover:text-ink hover:underline disabled:opacity-60"
+        >
+          <Play aria-hidden className="h-3.5 w-3.5" />
+          Approve &amp; simulate drive (about 20 s)
+        </button>
       ) : (
         <p className="mt-2 text-sm text-muted">Waiting for a dispatcher to approve.</p>
       )}

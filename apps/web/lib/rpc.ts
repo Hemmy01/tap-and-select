@@ -132,9 +132,13 @@ export async function loadTakenBuses(c: StopSyncClient): Promise<string[]> {
   return data ?? [];
 }
 
-/** Dispatcher: one step of a simulated drive (same effects as the bus's GPS). */
-export const simulateBusPosition = (c: StopSyncClient, busId: string, at: { lat: number; lng: number }) =>
-  action(c.rpc("simulate_bus_position", { p_bus: busId, p_lat: at.lat, p_lng: at.lng }));
+/** Dispatcher: one step of a simulated drive (same effects as the bus's GPS, but the drive's own ETA). */
+export const simulateBusPosition = (
+  c: StopSyncClient,
+  busId: string,
+  at: { lat: number; lng: number },
+  etaMinutes: number,
+) => action(c.rpc("simulate_bus_position", { p_bus: busId, p_lat: at.lat, p_lng: at.lng, p_eta_minutes: etaMinutes }));
 
 /** Admin only: a user's role, and the bus when the role is driver. */
 export const setUserRole = (c: StopSyncClient, userId: string, role: string, busId: string | null) =>

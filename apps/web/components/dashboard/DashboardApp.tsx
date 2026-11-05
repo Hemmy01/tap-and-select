@@ -65,8 +65,20 @@ export function DashboardApp() {
     void run(key, fn).then(reload);
   };
 
+  const startDrive = (busId: string, destination: string) => {
+    const route = routes.find((r) => r.route === DESTINATIONS.find((d) => d.code === destination)?.route);
+    if (route) drives.start(busId, route.stops);
+  };
+
   const actions: CardActions = {
     approve: (d) => act(`approve-${d.id}`, () => approveDecision(getSupabase(), d.id)),
+    // Presentation: release the bus and drive it to the kiosk straight away.
+    approveAndDrive: (d) =>
+      act(`approve-${d.id}`, async () => {
+        const result = await approveDecision(getSupabase(), d.id);
+        if (result.ok && typeof result.data.bus_id === "string") startDrive(result.data.bus_id, d.destination);
+        return result;
+      }),
     dismiss: (d) => act(`dismiss-${d.id}`, () => dismissDecision(getSupabase(), d.id)),
     arrive: (b) => act(`arrive-${b.id}`, () => markBusArrived(getSupabase(), b.id, "dashboard")),
     reset: (b) => act(`reset-${b.id}`, () => resetBus(getSupabase(), b.id)),
@@ -74,10 +86,7 @@ export function DashboardApp() {
     errorFor: (keys) => keys.map((k) => errors[k]).find(Boolean),
     drive: {
       progress: (busId) => drives.progress[busId],
-      start: (b) => {
-        const route = routes.find((r) => r.route === DESTINATIONS.find((d) => d.code === b.destination)?.route);
-        if (route) drives.start(b.id, route.stops);
-      },
+      start: (b) => startDrive(b.id, b.destination),
       stop: drives.stop,
       error: (busId) => drives.errors[busId],
     },

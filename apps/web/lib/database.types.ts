@@ -662,7 +662,12 @@ export type Database = {
         Returns: Json
       }
       simulate_bus_position: {
-        Args: { p_bus: string; p_lat: number; p_lng: number }
+        Args: {
+          p_bus: string
+          p_eta_minutes?: number
+          p_lat: number
+          p_lng: number
+        }
         Returns: Json
       }
       taken_buses: { Args: never; Returns: string[] }

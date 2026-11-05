@@ -247,11 +247,13 @@ bus, from `join_status`), the coming bus moving down its route's stops with free
 the line** with the kiosk's reasons (`cancel_from_phone`, works after joining closes; counted in
 **Why people left**).
 
-**Simulate drive (presentation aid).** On the dashboard, a released bus has **Simulate drive**: it
-moves along its real route from the terminal to the kiosk in about a minute (one step every 1.5 s),
-through `simulate_bus_position` (dispatcher or admin, only for a bus on the way), which runs the same
-`update_bus_location` logic as a phone. Departure, boarding at stops along the route, the kiosk's
-route strip, ETA and arrival all happen as with real GPS (events are logged as GPS). It runs in that
+**Simulate drive (presentation aid).** On the dashboard, a released bus has **Simulate drive**, and a
+release recommendation has **Approve & simulate drive** (one click: approve, then drive). The bus
+moves along its real route from the terminal to the kiosk in about 20 seconds (15 steps, one a
+second), through `simulate_bus_position` (dispatcher or admin, only for a bus on the way), which runs
+the same `update_bus_location` logic as a phone. Departure, boarding at stops along the route, the
+kiosk's route strip and arrival all happen as with real GPS (events are logged as GPS). The ETA is the
+drive's own ("about 1 min"), not one from the bus speed, which would say "19 min" for a 20-second drive. It runs in that
 browser tab and keeps going while you switch to the kiosk or any other page in the app
 (use the in-app links, not the address bar); closing or reloading the tab, or **Stop simulated drive**,
 leaves the bus where it is.
@@ -288,7 +290,7 @@ supabase/tests/run.sh --with supabase/migrations/<new>.sql    # try a migration 
 
 Each test runs inside a transaction against the linked project and **always rolls back**, so it is
 safe on the real database. 116 checks in seven files: roles (40), FIFO boarding and dispatch (27),
-drivers' shift bus (13), parked bus (11), cancellation (9), live board (9) and simulate drive (7). A failure prints
+drivers' shift bus (13), parked bus (11), cancellation (9), live board (9) and simulate drive (9). A failure prints
 the check's name and exits non-zero. (pgTAP needs a local Docker
 database, which this setup doesn't use.)
 

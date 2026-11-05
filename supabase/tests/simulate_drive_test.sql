@@ -58,6 +58,12 @@ begin
   perform pg_temp.ok(pg_temp.act((select id from u where role = 'driver'), $q$select simulate_bus_position('R2-01', -1.95, 30.07)$q$) = 'ERR 42501',
                      '3 nor a driver (they share real GPS instead)');
 
+  -- Quick drive: the minutes left replace the speed-based ETA; without them, nothing changes.
+  perform pg_temp.act(d, $q$select simulate_bus_position('R2-01', -1.9601, 30.1066, 1)$q$);
+  perform pg_temp.ok((select eta_minutes from buses where id = 'R2-01') = 1, '4 a quick drive sets the ETA it was given');
+  perform pg_temp.act(d, $q$select simulate_bus_position('R2-01', -1.9601, 30.1066)$q$);
+  perform pg_temp.ok((select eta_minutes from buses where id = 'R2-01') > 1, '5 without it, the ETA comes from the bus speed');
+
   -- A passenger waiting at the kiosk, then drive R2's stops in order, ending at the kiosk.
   v_code := private.create_token('STOP-01', 'REM', 'SIM-1', 'voice', 0.9)->>'code';
   for v_stop in
@@ -67,12 +73,12 @@ begin
     perform pg_temp.act(d, format('select simulate_bus_position(%L, %s, %s)', 'R2-01', v_stop.lat, v_stop.lng));
   end loop;
 
-  perform pg_temp.ok((select departed_at is not null from buses where id = 'R2-01'), '4 the bus left its terminal');
-  perform pg_temp.ok((select status from buses where id = 'R2-01') = 'arrived', '5 and arrived at the kiosk by GPS');
+  perform pg_temp.ok((select departed_at is not null from buses where id = 'R2-01'), '6 the bus left its terminal');
+  perform pg_temp.ok((select status from buses where id = 'R2-01') = 'arrived', '7 and arrived at the kiosk by GPS');
   perform pg_temp.ok((select status from queue_tokens where code = v_code and card_id = 'SIM-1') = 'boarded',
-                     '6 the waiting passenger boarded');
+                     '8 the waiting passenger boarded');
   perform pg_temp.ok(pg_temp.act(d, format('select simulate_bus_position(%L, %s, %s)->>''status''', 'R2-01', v_kiosk.lat, v_kiosk.lng)) = 'error',
-                     '7 an arrived bus is no longer simulated');
+                     '9 an arrived bus is no longer simulated');
 end $$;
 
 select n, check_name as passed from results order by n;
