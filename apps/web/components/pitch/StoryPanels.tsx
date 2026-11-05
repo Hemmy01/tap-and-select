@@ -51,7 +51,7 @@ export function AliceWaits() {
       <g transform="translate(-4 -6) scale(0.95)">
         <Alice x={50} hand={[62, 128]} />
       </g>
-      <AliceTag x={14} y={8} />
+      <AliceTag x={68} y={30} />
     </svg>
   );
 }
