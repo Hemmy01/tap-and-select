@@ -1,11 +1,12 @@
 // The pitch in six parts, one presenter each: problem statement (Kenny's storyline: a cold
-// "0", Alice, the problem, our survey, today's one-way fixes), our solution in three steps,
-// how it works and what we measured, the live demo, conclusion & future work, and questions;
+// "0", Alice, the problem, our survey, today's one-way fixes), our solution, how it works and
+// what we measured, the live demo, conclusion & future work (what it's worth, looking ahead,
+// the close), and questions;
 // then the sources. Alice is the same comic character on every slide.
 // System colours only: ink on paper, red for the problem, green for what we bring and measured,
 // muted for sources. Times New Roman; sizes in points: title 44, main points 24–28, sources 18.
 
-import { CreditCard, MapPin, Mic, Sun } from "lucide-react";
+import { CalendarDays, MapPin, Route } from "lucide-react";
 import Image from "next/image";
 import type { ReactNode } from "react";
 import { EveryoneSeesEta, HqSeesDemand, QueueAtStop } from "./IdeaStoryboard";
@@ -82,30 +83,6 @@ function Stat({ value, source, tone = "plain", children }: { value: string; sour
   );
 }
 
-/** One solution step: a comic panel and up to three short lines. */
-function Step({ n, title, panel, lines }: { n: number; title: string; panel: ReactNode; lines: readonly ReactNode[] }) {
-  return (
-    <SlideFrame
-      title={
-        <>
-          <span className="text-accent">{n} ·</span> {title}
-        </>
-      }
-    >
-      <div className="grid flex-1 grid-cols-[560px_1fr] items-center gap-12">
-        <Panel>{panel}</Panel>
-        <ul className="space-y-6">
-          {lines.map((line, i) => (
-            <li key={i} className="border-l-4 border-accent pl-5 leading-snug" style={pt(26)}>
-              {line}
-            </li>
-          ))}
-        </ul>
-      </div>
-    </SlideFrame>
-  );
-}
-
 /** QR code for the audience join page (public/pitch/join-qr.svg, made with `npx qrcode`). */
 function JoinQr({ size }: { size: number }) {
   return (
@@ -133,12 +110,19 @@ const SENSE_DECIDE_INFORM = [
   { stage: "3 · Tell", text: "everyone when the bus comes", Drawing: EveryoneSeesEta },
 ] as const;
 
-const NEXT_STEPS = [
-  { Icon: MapPin, head: "2–3 real stops", text: "One route, real commuters, one month" },
-  { Icon: CreditCard, head: "Real card readers", text: "Linked to Tap&Go cards" },
-  { Icon: Mic, head: "More voices", text: "Many accents, and Kinyarwanda" },
-  { Icon: Sun, head: "Solar + mobile data", text: "A stop that runs on its own" },
-] as const;
+// "What it's worth": both figures are estimates and say so on the slide.
+/** Bus users on a workday, City of Kigali via The New Times (May 2026), ref [7]. */
+const RIDERS_PER_WORKDAY = 230_000;
+const MOTO_FARE = 500;
+const WORKDAYS = 22;
+const MOTO_MONEY_MILLIONS =
+  N.surveyMoto !== null && N.surveyRespondents
+    ? Math.round((RIDERS_PER_WORKDAY * (N.surveyMoto / N.surveyRespondents) * MOTO_FARE * WORKDAYS) / 10_000_000) * 10
+    : "—";
+const EMPTY_SEATS = 38;
+const FARE_LOW = 300;
+const FARE_HIGH = 600;
+const seatLoss = (fare: number) => (EMPTY_SEATS * fare).toLocaleString("en-US");
 
 /** Voice model on a voice it never heard (Edge Impulse test set). */
 const voiceNew = MODELS.voice.testAccuracy;
@@ -340,50 +324,6 @@ export const SLIDES: readonly Slide[] = [
       </SlideFrame>
     ),
   },
-  {
-    title: "Count who is waiting",
-    part: "Our solution",
-    body: (
-      <Step
-        n={1}
-        title="Count who is waiting"
-        panel={<QueueAtStop />}
-        lines={[
-          "Alice taps her bus card at the stop.",
-          "She says her stop, or swipes a hand.",
-          "She gets a number in the line.",
-        ]}
-      />
-    ),
-  },
-  {
-    title: "Send buses where people wait",
-    part: "Our solution",
-    body: (
-      <Step
-        n={2}
-        title="Send buses where people wait"
-        panel={<HqSeesDemand />}
-        lines={[
-          "The control room sees every line, live.",
-          "A bus is suggested when it would be 70% full, or someone has waited 15 minutes.",
-          "A person says yes; the bus leaves.",
-        ]}
-      />
-    ),
-  },
-  {
-    title: "Tell everyone when the bus comes",
-    part: "Our solution",
-    body: (
-      <Step
-        n={3}
-        title="Tell everyone when the bus comes"
-        panel={<EveryoneSeesEta />}
-        lines={["The stop shows and says when the bus comes.", "Alice can follow the bus on her phone.", "First in line, first on."]}
-      />
-    ),
-  },
   // ── 3 How it works · does it work ───────────────────────────────────────────
   {
     title: "How it works",
@@ -468,59 +408,117 @@ export const SLIDES: readonly Slide[] = [
   },
   // ── 5 Conclusion & future work ─────────────────────────────────────────────
   {
-    title: "Back to Alice",
+    title: "What it's worth",
     part: "Conclusion & future work",
     body: (
-      <SlideFrame
-        title={
-          <>
-            Today, the bus doesn&rsquo;t know Alice is waiting.{" "}
-            <span className="text-accent">With Tap&amp;Select, it does.</span>
-          </>
-        }
-      >
-        <div className="mt-auto grid grid-cols-[520px_1fr] items-end gap-12">
-          <Panel>
-            <AliceBoards />
-          </Panel>
-          <dl className="space-y-4">
-            {[
-              ["Count", "Every stop counts its line."],
-              ["Send", "Buses go where people wait."],
-              ["Tell", "Everyone knows when the bus comes."],
-            ].map(([head, text]) => (
-              <div key={head}>
-                <dt className="font-bold text-accent" style={pt(24)}>
-                  {head}
-                </dt>
-                <dd style={pt(24)}>{text}</dd>
-              </div>
-            ))}
-          </dl>
+      <SlideFrame title="What it’s worth">
+        <div className="mt-2 grid flex-1 grid-cols-2 gap-16">
+          <div className="flex flex-col">
+            <p className="leading-snug" style={pt(24)}>
+              <span className="font-bold text-danger">{pitchPercent(N.surveyMoto, N.surveyRespondents)}</span> of commuters
+              we asked take a moto just to reach a bus park and be sure of a bus
+              <Cite n={4} />
+            </p>
+            <p className="mt-6 whitespace-nowrap font-bold leading-none tabular-nums text-accent" style={pt(44)}>
+              ≈ {MOTO_MONEY_MILLIONS} million RWF
+            </p>
+            <p className="mt-3 leading-snug" style={pt(24)}>
+              a month could stay in workers&rsquo; pockets
+            </p>
+            <p className="mt-auto border-t border-line pt-2 leading-snug text-muted" style={pt(18)}>
+              Estimate: {RIDERS_PER_WORKDAY.toLocaleString("en-US")} bus riders a workday [7] ×{" "}
+              {pitchPercent(N.surveyMoto, N.surveyRespondents)} × {MOTO_FARE} RWF × {WORKDAYS} workdays
+            </p>
+          </div>
+          <div className="flex flex-col">
+            <p className="leading-snug" style={pt(24)}>
+              A bus that leaves with <span className="font-bold text-danger">{EMPTY_SEATS} empty seats</span>, at a fare of{" "}
+              {FARE_LOW}–{FARE_HIGH} RWF
+              <Cite n={8} />, loses
+            </p>
+            <p className="mt-6 whitespace-nowrap font-bold leading-none tabular-nums text-accent" style={pt(44)}>
+              {seatLoss(FARE_LOW)}–{seatLoss(FARE_HIGH)} RWF
+            </p>
+            <p className="mt-3 leading-snug" style={pt(24)}>
+              every trip. <span className="font-bold">We fill those seats.</span>
+            </p>
+            <p className="mt-auto border-t border-line pt-2 leading-snug text-muted" style={pt(18)}>
+              Estimate: {EMPTY_SEATS} seats × {FARE_LOW}–{FARE_HIGH} RWF (fares run 182–855 RWF by distance)
+            </p>
+          </div>
         </div>
       </SlideFrame>
     ),
   },
   {
-    title: "Future work",
+    title: "Looking ahead",
     part: "Conclusion & future work",
     body: (
-      <SlideFrame title="Future work">
-        <ul className="mt-4 grid flex-1 grid-cols-4 gap-8">
-          {NEXT_STEPS.map(({ Icon, head, text }) => (
-            <li key={head} className="flex flex-col items-start">
-              <span className="flex h-28 w-28 items-center justify-center rounded-card bg-accent text-paper">
-                <Icon aria-hidden className="h-14 w-14" strokeWidth={1.75} />
-              </span>
-              <span className="mt-5 block font-bold" style={pt(28)}>
-                {head}
-              </span>
-              <span className="mt-1 block text-muted" style={pt(24)}>
-                {text}
-              </span>
-            </li>
-          ))}
-        </ul>
+      <SlideFrame title="Looking ahead">
+        <div className="grid flex-1 grid-cols-2 gap-16">
+          <div>
+            <p className="font-bold uppercase tracking-[0.08em] text-muted" style={pt(18)}>
+              In 15 years
+            </p>
+            <p className="mt-3 font-bold leading-snug" style={pt(28)}>
+              Our data tells the city where to build new stops.
+            </p>
+            <p className="mt-4 leading-snug text-accent" style={pt(24)}>
+              Less guessing. Less traffic. A smarter city.
+            </p>
+          </div>
+          <div>
+            <p className="font-bold uppercase tracking-[0.08em] text-muted" style={pt(18)}>
+              To start, we just need
+            </p>
+            <ul className="mt-3 space-y-4">
+              {[
+                { Icon: CalendarDays, text: "30 days" },
+                { Icon: Route, text: "One route" },
+                { Icon: MapPin, text: "Three stops" },
+              ].map(({ Icon, text }) => (
+                <li key={text} className="flex items-center gap-5">
+                  <span className="flex h-16 w-16 items-center justify-center rounded-card bg-accent text-paper">
+                    <Icon aria-hidden className="h-8 w-8" strokeWidth={1.75} />
+                  </span>
+                  <span className="font-bold" style={pt(28)}>
+                    {text}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </SlideFrame>
+    ),
+  },
+  {
+    title: "Tap, and go home",
+    part: "Conclusion & future work",
+    body: (
+      <SlideFrame>
+        <div className="grid flex-1 grid-cols-[1fr_500px] items-center gap-12">
+          <div>
+            <p className="leading-snug" style={pt(28)}>
+              Alice shouldn&rsquo;t pay the moto.
+            </p>
+            <p className="leading-snug" style={pt(28)}>
+              She shouldn&rsquo;t wait in the dark.
+            </p>
+            <p className="mt-4 font-bold leading-snug text-accent" style={pt(28)}>
+              She should just tap, and go home.
+            </p>
+            <p className="mt-10 font-bold" style={pt(44)}>
+              Tap&amp;Select
+            </p>
+            <p className="font-bold text-accent" style={pt(28)}>
+              Make every stop count. Murakoze.
+            </p>
+          </div>
+          <Panel>
+            <AliceBoards />
+          </Panel>
+        </div>
       </SlideFrame>
     ),
   },
@@ -532,12 +530,9 @@ export const SLIDES: readonly Slide[] = [
       <SlideFrame>
         <div className="flex flex-1 flex-col justify-center">
           <RouteBand />
-          <h2 className="mt-8 font-bold leading-none" style={pt(44)}>
+          <h2 className="mt-8 font-bold leading-none" style={pt(72)}>
             Questions?
           </h2>
-          <p className="mt-6 font-bold leading-none text-accent" style={pt(72)}>
-            Murakoze.
-          </p>
           <p className="mt-12" style={pt(24)}>
             Tap&amp;Select · {TEAM.join(" · ")}
           </p>

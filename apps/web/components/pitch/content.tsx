@@ -114,6 +114,20 @@ export const PITCH_REFERENCES: readonly Reference[] = [
     title: "Gerayo App [Mobile app]",
     url: "https://apps.apple.com/us/app/-/id6769424805",
   },
+  {
+    n: 7,
+    author: "C. Nyandwi.",
+    date: "(2026, May 22).",
+    title: "Public transport users up by 30,000 in less than a month",
+    url: "https://www.newtimes.co.rw/article/35921/news/infrastructure/public-transport-users-up-by-30000-in-less-than-a-month",
+  },
+  {
+    n: 8,
+    author: "S. Sang.",
+    date: "(2024, Dec. 3).",
+    title: "Kigali adopts distance-based fare system for public buses",
+    url: "https://www.eabusinesstimes.com/kigali-adopts-distance-based-fare-system-for-public-buses/",
+  },
 ];
 
 /** "(2025, Dec. 9)." → "2025". */

@@ -21,6 +21,8 @@ export interface PitchNumbers {
   surveyUnsureWhen: number | null;
   /** To be sure of a bus, walk to a big bus park or take a moto to one. */
   surveyToBusPark: number | null;
+  /** To be sure of a bus, take a moto to a bus park (ticked, or wrote "moto"). */
+  surveyMoto: number | null;
   audienceJoined: number | null;
 }
 
