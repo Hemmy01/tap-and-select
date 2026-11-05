@@ -110,20 +110,24 @@ const SENSE_DECIDE_INFORM = [
 ] as const;
 
 // "What it's worth": both figures are estimates and say so on the slide.
-/** Bus users on a workday, City of Kigali via The New Times (May 2026), ref [8]. */
+/** Bus users on a workday, City of Kigali via The New Times (May 2026), ref [7]. */
 const RIDERS_PER_WORKDAY = 230_000;
 const MOTO_FARE = 500;
 const WORKDAYS = 22;
+/** Conservative: only 1 in 10 of the riders who pay a moto switches to the bus. */
+const SWITCH_SHARE = 0.1;
 const MOTO_MONEY_MILLIONS =
   N.surveyMoto !== null && N.surveyRespondents
-    ? Math.round((RIDERS_PER_WORKDAY * (N.surveyMoto / N.surveyRespondents) * MOTO_FARE * WORKDAYS) / 10_000_000) * 10
+    ? Math.round(
+        (RIDERS_PER_WORKDAY * (N.surveyMoto / N.surveyRespondents) * SWITCH_SHARE * MOTO_FARE * WORKDAYS) / 10_000_000,
+      ) * 10
     : "—";
 /** Walk or take a moto to a bus park to be sure of a bus: 38 of 71 is 53.5%, shown as 53%. */
 const TO_BUS_PARK_PCT =
   N.surveyToBusPark !== null && N.surveyRespondents ? `${Math.floor((N.surveyToBusPark / N.surveyRespondents) * 100)}%` : "—";
 const EMPTY_SEATS_LOW = 26;
 const EMPTY_SEATS_HIGH = 30;
-/** A long-route fare (the 25 km fare is 855 RWF), ref [9]. */
+/** A long-route fare (the 25 km fare is 855 RWF), ref [8]. */
 const LONG_FARE = 800;
 const seatLoss = (seats: number) => (seats * LONG_FARE).toLocaleString("en-US");
 
@@ -331,9 +335,6 @@ export const SLIDES: readonly Slide[] = [
           <p className="font-bold leading-snug" style={pt(28)}>
             Demand-based scheduling cut waiting by up to <span className="text-accent">80%</span> in simulation
           </p>
-          <p className="mt-1 text-muted" style={pt(18)}>
-            O. Paul &amp; P. McSharry (2021), Lagos bus rapid transit [7]
-          </p>
         </div>
       </SlideFrame>
     ),
@@ -465,8 +466,9 @@ export const SLIDES: readonly Slide[] = [
               a month could stay in workers&rsquo; pockets
             </p>
             <p className="mt-auto border-t border-line pt-2 leading-snug text-muted" style={pt(18)}>
-              Estimate: {RIDERS_PER_WORKDAY.toLocaleString("en-US")} bus riders a workday [8] ×{" "}
-              {pitchPercent(N.surveyMoto, N.surveyRespondents)} × {MOTO_FARE} RWF × {WORKDAYS} workdays
+              Conservative estimate: {RIDERS_PER_WORKDAY.toLocaleString("en-US")} bus riders a workday [7] ×{" "}
+              {pitchPercent(N.surveyMoto, N.surveyRespondents)} pay a moto × only 1 in 10 switching × {MOTO_FARE} RWF ×{" "}
+              {WORKDAYS} workdays
             </p>
           </div>
           <div className="flex flex-col">
@@ -476,7 +478,7 @@ export const SLIDES: readonly Slide[] = [
                 {EMPTY_SEATS_LOW}–{EMPTY_SEATS_HIGH} empty seats
               </span>{" "}
               on a long route (about {LONG_FARE} RWF a seat
-              <Cite n={9} />) loses
+              <Cite n={8} />) loses
             </p>
             <p className="mt-6 whitespace-nowrap font-bold leading-none tabular-nums text-accent" style={pt(44)}>
               ≈ 20,000–25,000 RWF
