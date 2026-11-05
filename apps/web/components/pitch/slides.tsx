@@ -114,9 +114,13 @@ const SENSE_DECIDE_INFORM = [
 const RIDERS_PER_WORKDAY = 230_000;
 const MOTO_FARE = 500;
 const WORKDAYS = 22;
+/** Conservative: only 1 in 10 of the riders who pay a moto switches to the bus. */
+const SWITCH_SHARE = 0.1;
 const MOTO_MONEY_MILLIONS =
   N.surveyMoto !== null && N.surveyRespondents
-    ? Math.round((RIDERS_PER_WORKDAY * (N.surveyMoto / N.surveyRespondents) * MOTO_FARE * WORKDAYS) / 10_000_000) * 10
+    ? Math.round(
+        (RIDERS_PER_WORKDAY * (N.surveyMoto / N.surveyRespondents) * SWITCH_SHARE * MOTO_FARE * WORKDAYS) / 10_000_000,
+      ) * 10
     : "—";
 /** Walk or take a moto to a bus park to be sure of a bus: 38 of 71 is 53.5%, shown as 53%. */
 const TO_BUS_PARK_PCT =
@@ -465,8 +469,9 @@ export const SLIDES: readonly Slide[] = [
               a month could stay in workers&rsquo; pockets
             </p>
             <p className="mt-auto border-t border-line pt-2 leading-snug text-muted" style={pt(18)}>
-              Estimate: {RIDERS_PER_WORKDAY.toLocaleString("en-US")} bus riders a workday [8] ×{" "}
-              {pitchPercent(N.surveyMoto, N.surveyRespondents)} × {MOTO_FARE} RWF × {WORKDAYS} workdays
+              Conservative estimate: {RIDERS_PER_WORKDAY.toLocaleString("en-US")} bus riders a workday [8] ×{" "}
+              {pitchPercent(N.surveyMoto, N.surveyRespondents)} pay a moto × only 1 in 10 switching × {MOTO_FARE} RWF ×{" "}
+              {WORKDAYS} workdays
             </p>
           </div>
           <div className="flex flex-col">
