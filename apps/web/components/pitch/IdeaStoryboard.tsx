@@ -1,9 +1,9 @@
 import clsx from "clsx";
 import type { ReactNode } from "react";
-import { INK, Kiosk, MONO, PAPER, Person, R2, SANS, SURFACE } from "./JourneyComic";
+import { Alice, INK, Kiosk, MONO, PAPER, Person, R2, SANS, SURFACE } from "./JourneyComic";
 
 // The whole idea in six drawn panels, Sense → Decide → Inform → Next, shown before the live demo.
-// Same characters and kiosk as the "How it works" comic; illustrations, not photos of hardware.
+// Alice and the kiosk are the same as in the "How it works" comic; illustrations, not photos of hardware.
 
 type Stage = "Sense" | "Decide" | "Inform" | "Next";
 
@@ -49,7 +49,7 @@ export function Bus({ x, y, doorOpen = false }: { x: number; y: number; doorOpen
 /** 1 Sense: a short line at the stop; every passenger is counted per destination. */
 export function QueueAtStop() {
   return (
-    <svg viewBox="0 0 320 180" role="img" aria-label="Three passengers queue at a kiosk; HQ counts 12 waiting for Remera">
+    <svg viewBox="0 0 320 180" role="img" aria-label="Alice taps her card at the kiosk behind two other passengers; 12 waiting for Remera">
       <Ground />
       <g transform="translate(0 -4) scale(0.9)">
         <g transform="translate(120 0)">
@@ -57,9 +57,9 @@ export function QueueAtStop() {
         </g>
         <Person x={70} hand={[86, 130]} />
         <Person x={140} hand={[156, 130]} />
-        <Person x={212} hand={[270, 128]}>
+        <Alice x={212} hand={[270, 128]}>
           <rect x="262" y="114" width="16" height="24" rx="3" fill={SURFACE} stroke={INK} strokeWidth="2" transform="rotate(-12 270 126)" />
-        </Person>
+        </Alice>
       </g>
       <g>
         <rect x="10" y="8" width="168" height="28" rx="14" fill={SURFACE} stroke={INK} strokeWidth="2.5" />
@@ -132,7 +132,7 @@ function BusReleased() {
 /** 4 Inform: the kiosk shows and speaks the ETA; anyone can follow it on /live. */
 export function EveryoneSeesEta() {
   return (
-    <svg viewBox="0 0 320 180" role="img" aria-label="The kiosk shows and reads out the ETA, and a passenger follows the bus on the live board on a phone">
+    <svg viewBox="0 0 320 180" role="img" aria-label="The kiosk shows and reads out the ETA, and Alice follows the bus on her phone">
       <Ground />
       <g transform="translate(-118 -14) scale(1 1)">
         <Kiosk
@@ -146,12 +146,12 @@ export function EveryoneSeesEta() {
       </g>
       <path d="M96 52 a10 10 0 0 1 0 16 M104 46 a18 18 0 0 1 0 28" fill="none" stroke={INK} strokeWidth="2.5" strokeLinecap="round" />
       <g transform="translate(0 -2) scale(0.92)">
-        <Person x={250} hand={[226, 100]}>
+        <Alice x={250} hand={[226, 100]}>
           <rect x="196" y="70" width="34" height="56" rx="5" fill={INK} />
           <rect x="200" y="76" width="26" height="44" rx="2" fill={PAPER} />
           <path d="M204 112 C210 100 216 96 222 82" fill="none" stroke={R2} strokeWidth="3" strokeLinecap="round" />
           <circle cx="215" cy="96" r="4" fill={INK} />
-        </Person>
+        </Alice>
       </g>
       <Pill x={120} y={8} w={80}>
         /live
@@ -169,7 +169,11 @@ function BoardInOrder() {
       <Bus x={164} y={90} doorOpen />
       <g transform="translate(0 -14) scale(0.9)">
         {tickets.map((t, i) => (
-          <Person key={t} x={40 + i * 56} hand={[56 + i * 56, 130]} />
+          i === tickets.length - 1 ? (
+            <Alice key={t} x={40 + i * 56} hand={[56 + i * 56, 130]} />
+          ) : (
+            <Person key={t} x={40 + i * 56} hand={[56 + i * 56, 130]} />
+          )
         ))}
       </g>
       {tickets.map((t, i) => (

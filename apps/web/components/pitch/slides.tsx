@@ -1,15 +1,16 @@
-// The pitch in six parts, one presenter each: hook & problem (Kenny's storyline: a cold
-// "0", Alice, the problem, our survey, today's one-way fixes), the solution, how it works and
-// what we measured, the live demo, conclusion & next steps, and questions; then the sources.
-// Times New Roman throughout (the comic drawings keep their own lettering). Sizes are in
-// points: title 44, main points 24–28, sources and citations 18.
+// The pitch in six parts, one presenter each: problem statement (Kenny's storyline: a cold
+// "0", Alice, the problem, our survey, today's one-way fixes), our solution in three steps,
+// how it works and what we measured, the live demo, conclusion & future work, and questions;
+// then the sources. Alice is the same comic character on every slide.
+// System colours only: ink on paper, red for the problem, green for what we bring and measured,
+// muted for sources. Times New Roman; sizes in points: title 44, main points 24–28, sources 18.
 
 import { CreditCard, MapPin, Mic, Sun } from "lucide-react";
 import Image from "next/image";
 import type { ReactNode } from "react";
 import { EveryoneSeesEta, HqSeesDemand, QueueAtStop } from "./IdeaStoryboard";
-import { JourneyComic } from "./JourneyComic";
-import { AliceBoards } from "./StoryPanels";
+import { JourneyComic, TapCardPanel } from "./JourneyComic";
+import { AliceBoards, AliceWaits } from "./StoryPanels";
 import { formatAccuracy, MODELS } from "@/lib/models";
 import type { PitchPart } from "@/lib/pitch-nav";
 import { PITCH_NUMBERS as N, pitchPercent, pitchValue } from "@/lib/pitch";
@@ -18,8 +19,6 @@ import { PITCH_REFERENCES, ReferenceLine, TEAM } from "./content";
 export interface Slide {
   title: string;
   part: PitchPart;
-  /** Navy background with white type (Kenny's cover, hook and Alice). */
-  dark?: boolean;
   body: ReactNode;
 }
 
@@ -30,7 +29,7 @@ const pt = (n: number) => ({ fontSize: `${n}pt` });
 function Cite({ n }: { n: number | readonly number[] }) {
   const list = typeof n === "number" ? [n] : n;
   return (
-    <span className="ml-2 font-normal not-italic opacity-70" style={pt(18)}>
+    <span className="ml-2 font-normal not-italic text-muted" style={pt(18)}>
       [{list.join("], [")}]
     </span>
   );
@@ -38,41 +37,42 @@ function Cite({ n }: { n: number | readonly number[] }) {
 
 function Title({ children }: { children: ReactNode }) {
   return (
-    <h2 className="font-bold leading-[1.1]" style={pt(44)}>
+    <h2 className="font-bold leading-[1.1] text-ink" style={pt(44)}>
       {children}
     </h2>
   );
 }
 
-/** Light slide; content starts below the parts bar and stops above the footer. */
-function Light({ title, children }: { title: ReactNode; children: ReactNode }) {
+/** Every slide: paper background, content below the parts bar and above the footer. */
+function SlideFrame({ title, children }: { title?: ReactNode; children: ReactNode }) {
   return (
-    <div className="pitch-serif flex h-full flex-col px-16 pt-16 pb-20 text-ink">
-      <Title>{title}</Title>
-      <div className="mt-6 flex min-h-0 flex-1 flex-col">{children}</div>
+    <div className="pitch-serif flex h-full flex-col bg-paper px-16 pt-16 pb-20 text-ink">
+      {title ? <Title>{title}</Title> : null}
+      <div className={`flex min-h-0 flex-1 flex-col ${title ? "mt-6" : ""}`}>{children}</div>
     </div>
   );
 }
 
-function Dark({ image = "navy", children }: { image?: "navy" | "cover"; children: ReactNode }) {
+/** A comic panel, framed like the other comics. */
+function Panel({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div
-      className="pitch-serif flex h-full flex-col bg-[#101a3c] bg-cover bg-center px-16 pt-16 pb-20 text-white"
-      style={{ backgroundImage: `url(/pitch/story/${image}.jpg)` }}
-    >
+    <figure className={`overflow-hidden rounded-card border border-line bg-surface [&>svg]:block [&>svg]:w-full ${className ?? ""}`}>
       {children}
-    </div>
+    </figure>
   );
 }
+
+type Tone = "problem" | "result" | "plain";
+const TONE: Record<Tone, string> = { problem: "text-danger", result: "text-accent", plain: "text-ink" };
 
 /** A big number, what it means, and its source. */
-function Stat({ value, source, children }: { value: string; source: ReactNode; children: ReactNode }) {
+function Stat({ value, source, tone = "plain", children }: { value: string; source: ReactNode; tone?: Tone; children: ReactNode }) {
   return (
     <div className="flex flex-col">
-      <span className="font-bold leading-none tabular-nums" style={pt(64)}>
+      <span className={`font-bold leading-none tabular-nums ${TONE[tone]}`} style={pt(64)}>
         {value}
       </span>
-      <span className="mt-3 flex-1 leading-snug" style={pt(24)}>
+      <span className="mt-3 leading-snug" style={pt(24)}>
         {children}
       </span>
       <span className="mt-3 border-t border-line pt-2 leading-snug text-muted" style={pt(18)}>
@@ -82,8 +82,28 @@ function Stat({ value, source, children }: { value: string; source: ReactNode; c
   );
 }
 
-function Picture({ src, alt, width, height, className }: { src: string; alt: string; width: number; height: number; className?: string }) {
-  return <Image src={src} alt={alt} width={width} height={height} unoptimized className={className} />;
+/** One solution step: a comic panel and up to three short lines. */
+function Step({ n, title, panel, lines }: { n: number; title: string; panel: ReactNode; lines: readonly ReactNode[] }) {
+  return (
+    <SlideFrame
+      title={
+        <>
+          <span className="text-accent">{n} ·</span> {title}
+        </>
+      }
+    >
+      <div className="grid flex-1 grid-cols-[560px_1fr] items-center gap-12">
+        <Panel>{panel}</Panel>
+        <ul className="space-y-6">
+          {lines.map((line, i) => (
+            <li key={i} className="border-l-4 border-accent pl-5 leading-snug" style={pt(26)}>
+              {line}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </SlideFrame>
+  );
 }
 
 /** QR code for the audience join page (public/pitch/join-qr.svg, made with `npx qrcode`). */
@@ -108,9 +128,9 @@ const FIXES = [
 ] as const;
 
 const SENSE_DECIDE_INFORM = [
-  { stage: "Sense", text: "Alice says or swipes a stop at the kiosk.", Drawing: QueueAtStop },
-  { stage: "Decide", text: "HQ sees the line and sends a bus.", Drawing: HqSeesDemand },
-  { stage: "Inform", text: "Alice sees the ticket and when the bus comes.", Drawing: EveryoneSeesEta },
+  { stage: "1 · Count", text: "who is waiting, at every stop", Drawing: QueueAtStop },
+  { stage: "2 · Send", text: "buses where people wait", Drawing: HqSeesDemand },
+  { stage: "3 · Tell", text: "everyone when the bus comes", Drawing: EveryoneSeesEta },
 ] as const;
 
 const NEXT_STEPS = [
@@ -119,20 +139,6 @@ const NEXT_STEPS = [
   { Icon: Mic, head: "More voices", text: "Many accents, and Kinyarwanda" },
   { Icon: Sun, head: "Solar + mobile data", text: "A stop that runs on its own" },
 ] as const;
-
-/** A real screenshot of one of our screens (public/pitch/screens), framed like a device. */
-function Screen({ src, alt, width, height, className }: { src: string; alt: string; width: number; height: number; className?: string }) {
-  return (
-    <Image
-      src={src}
-      alt={alt}
-      width={width}
-      height={height}
-      unoptimized
-      className={`rounded-card border-4 border-ink bg-surface ${className ?? ""}`}
-    />
-  );
-}
 
 /** Voice model on a voice it never heard (Edge Impulse test set). */
 const voiceNew = MODELS.voice.testAccuracy;
@@ -152,136 +158,144 @@ function References({ from, to }: { from: number; to: number }) {
 
 const half = Math.ceil(PITCH_REFERENCES.length / 2);
 
+/** The four route colours as a thin band, like a transit map key. */
+function RouteBand() {
+  return (
+    <div className="flex h-2 w-64 overflow-hidden rounded-pill" aria-hidden>
+      {[1, 2, 3, 4].map((r) => (
+        <span key={r} className="flex-1" style={{ background: `var(--route-${r})` }} />
+      ))}
+    </div>
+  );
+}
+
 export const SLIDES: readonly Slide[] = [
-  // ── 1 Hook & problem (Kenny) ───────────────────────────────────────────────
+  // ── 1 Problem statement (Kenny) ─────────────────────────────────────────────
   {
     title: "Tap&Select",
-    part: "Hook & problem",
-    dark: true,
+    part: "Problem statement",
     body: (
-      <Dark image="cover">
-        <div className="flex h-full items-center justify-between">
+      <SlideFrame>
+        <div className="grid flex-1 grid-cols-[1fr_440px] items-center gap-12">
           <div>
-            <h1 className="font-bold leading-none" style={pt(44)}>
+            <RouteBand />
+            <h1 className="mt-6 font-bold leading-none" style={pt(44)}>
               Tap&amp;Select
             </h1>
-            <p className="mt-6 font-bold" style={pt(28)}>
+            <p className="mt-5 font-bold text-accent" style={pt(28)}>
               Make every stop count.
             </p>
-            <p className="mt-2 opacity-90" style={pt(24)}>
+            <p className="mt-2" style={pt(24)}>
               Smart bus stops for Kigali
             </p>
-            <p className="mt-12 opacity-90" style={pt(24)}>
+            <p className="mt-12" style={pt(24)}>
               {TEAM.join(" · ")}
             </p>
-            <p className="mt-1 opacity-70" style={pt(18)}>
+            <p className="mt-1 text-muted" style={pt(18)}>
               CMU-Africa Bridge Program 2026
             </p>
           </div>
-          <div className="flex items-end gap-6">
-            <Picture src="/pitch/story/card-hand.png" alt="A hand holding a bus card" width={250} height={359} />
-            <Picture src="/pitch/story/reader.png" alt="A card reader on a pole" width={130} height={431} />
-          </div>
+          <Panel>
+            <TapCardPanel />
+          </Panel>
         </div>
-      </Dark>
+      </SlideFrame>
     ),
   },
   {
     title: "How many can the system see?",
-    part: "Hook & problem",
-    dark: true,
+    part: "Problem statement",
     body: (
-      <Dark>
-        <div className="flex h-full flex-col items-center justify-center text-center">
+      <SlideFrame>
+        <div className="flex flex-1 flex-col items-center justify-center text-center">
           <Title>How many waiting passengers can Kigali&rsquo;s bus system see?</Title>
-          <p className="mt-4 font-bold leading-none" style={pt(200)}>
+          <p className="mt-4 font-bold leading-none text-danger" style={pt(200)}>
             0
           </p>
         </div>
-      </Dark>
+      </SlideFrame>
     ),
   },
   {
     title: "Meet Alice",
-    part: "Hook & problem",
-    dark: true,
+    part: "Problem statement",
     body: (
-      <Dark>
-        <Title>Meet Alice</Title>
-        <div className="mt-4 grid min-h-0 flex-1 grid-cols-[300px_1fr] items-end gap-10">
-          <Picture src="/pitch/story/alice.png" alt="Alice, waiting at the stop" width={300} height={457} />
-          <div className="pb-2">
-            <Picture src="/pitch/story/crowd.png" alt="A long line of people waiting" width={780} height={229} className="opacity-90" />
-            <p className="mt-4 font-bold" style={pt(28)}>
+      <SlideFrame title="Meet Alice">
+        <div className="grid flex-1 grid-cols-[640px_1fr] items-center gap-12">
+          <Panel>
+            <AliceWaits />
+          </Panel>
+          <div>
+            <p className="font-bold" style={pt(28)}>
               40 waiting at Remera.
             </p>
-            <p className="font-bold" style={pt(28)}>
+            <p className="font-bold text-danger" style={pt(28)}>
               10 seats left.
             </p>
-            <p className="mt-6 italic" style={pt(28)}>
+            <p className="mt-8 italic" style={pt(28)}>
               You don&rsquo;t exist until you get on the bus.
               <Cite n={1} />
             </p>
-            <p className="mt-2 opacity-70" style={pt(18)}>
+            <p className="mt-3 text-muted" style={pt(18)}>
               Alice is a composite of what commuters told us.
             </p>
           </div>
         </div>
-      </Dark>
+      </SlideFrame>
     ),
   },
   {
     title: "The problem",
-    part: "Hook & problem",
+    part: "Problem statement",
     body: (
-      <Light title="The problem">
+      <SlideFrame title="The problem">
         <p style={pt(28)}>Buses run on a timetable.</p>
-        <p className="font-bold" style={pt(28)}>
+        <p className="font-bold text-danger" style={pt(28)}>
           Nobody tells it who is waiting.
         </p>
         <div className="mt-auto grid grid-cols-2 gap-16">
-          <Stat value="+30%" source={<>C. Nyandwi, The New Times (2026) [2]</>}>
+          <Stat value="+30%" source="C. Nyandwi, The New Times (2026) [2]">
             more passengers than last year
           </Stat>
-          <Stat value="20%" source={<>The New Times (2026) [3]</>}>
+          <Stat value="20%" source="The New Times (2026) [3]">
             of daily trips by public transport, up from about 10%
           </Stat>
         </div>
-      </Light>
+      </SlideFrame>
     ),
   },
   {
     title: "We asked commuters",
-    part: "Hook & problem",
+    part: "Problem statement",
     body: (
-      <Light title="We asked commuters">
-        <div className="grid flex-1 grid-cols-3 gap-12">
-          <Stat value={pitchPercent(N.surveyLongWaits, N.surveyRespondents)} source={`${pitchValue(N.surveyLongWaits)} of ${pitchValue(N.surveyRespondents)}`}>
+      <SlideFrame title="We asked commuters">
+        <div className="mt-6 grid grid-cols-3 gap-12">
+          <Stat tone="problem" value={pitchPercent(N.surveyLongWaits, N.surveyRespondents)} source={`${pitchValue(N.surveyLongWaits)} of ${pitchValue(N.surveyRespondents)}`}>
             say long waits keep them off the bus
           </Stat>
-          <Stat value={pitchPercent(N.surveyUnsureWhen, N.surveyRespondents)} source={`${pitchValue(N.surveyUnsureWhen)} of ${pitchValue(N.surveyRespondents)}`}>
+          <Stat tone="problem" value={pitchPercent(N.surveyUnsureWhen, N.surveyRespondents)} source={`${pitchValue(N.surveyUnsureWhen)} of ${pitchValue(N.surveyRespondents)}`}>
             don&rsquo;t know when the bus will arrive
           </Stat>
-          <Stat value={pitchPercent(N.surveyToBusPark, N.surveyRespondents)} source={`${pitchValue(N.surveyToBusPark)} of ${pitchValue(N.surveyRespondents)}`}>
+          <Stat tone="problem" value={pitchPercent(N.surveyToBusPark, N.surveyRespondents)} source={`${pitchValue(N.surveyToBusPark)} of ${pitchValue(N.surveyRespondents)}`}>
             go to a bus park on foot or by moto, to be sure of a bus
           </Stat>
         </div>
-        <p className="mt-4 text-muted" style={pt(18)}>
+        <p className="mt-auto text-muted" style={pt(18)}>
           n = {pitchValue(N.surveyRespondents)} commuters surveyed in Kigali, 1–4 Nov 2026 [4]
         </p>
-      </Light>
+      </SlideFrame>
     ),
   },
   {
     title: "Today's fixes talk one way",
-    part: "Hook & problem",
+    part: "Problem statement",
     body: (
-      <Light title="Today’s fixes talk one way">
+      <SlideFrame title="Today’s fixes talk one way">
         <div className="grid grid-cols-3 gap-12">
           {FIXES.map((f) => (
             <div key={f.name}>
               <div className="flex h-[200px] items-center">
-                <Picture src={f.img} alt={f.alt} width={f.w} height={f.h} className="max-h-[200px] w-auto rounded-xl object-contain" />
+                <Image src={f.img} alt={f.alt} width={f.w} height={f.h} unoptimized className="max-h-[200px] w-auto rounded-xl object-contain" />
               </div>
               <p className="mt-3 font-bold" style={pt(24)}>
                 {f.name}
@@ -293,123 +307,123 @@ export const SLIDES: readonly Slide[] = [
             </div>
           ))}
         </div>
-        <p className="mt-auto font-bold" style={pt(28)}>
+        <p className="mt-auto font-bold text-danger" style={pt(28)}>
           Nothing in use today counts who is waiting.
         </p>
-        <p className="italic" style={pt(24)}>
+        <p className="italic text-accent" style={pt(24)}>
           So we built the missing half.
         </p>
-      </Light>
+      </SlideFrame>
     ),
   },
-  // ── 2 Solution ────────────────────────────────────────────────────────────
+  // ── 2 Our solution ─────────────────────────────────────────────────────────
   {
-    title: "The missing half",
-    part: "Solution",
+    title: "Our solution",
+    part: "Our solution",
     body: (
-      <Light title="The missing half: Tap&Select">
-        <p style={pt(28)}>Every bus stop counts who is waiting, and tells the control room.</p>
+      <SlideFrame title="Our solution: Tap&Select">
+        <p style={pt(28)}>
+          Every bus stop counts who is waiting, <span className="font-bold text-accent">so buses go where people are.</span>
+        </p>
         <div className="mt-auto grid grid-cols-3 gap-8">
           {SENSE_DECIDE_INFORM.map(({ stage, text, Drawing }) => (
             <div key={stage}>
-              <div className="overflow-hidden rounded-card border border-line bg-paper [&>svg]:block [&>svg]:w-full">
+              <Panel>
                 <Drawing />
-              </div>
-              <p className="mt-3 font-bold uppercase tracking-[0.08em]" style={pt(18)}>
-                {stage}
-              </p>
-              <p className="leading-snug" style={pt(24)}>
-                {text}
+              </Panel>
+              <p className="mt-3 leading-snug" style={pt(24)}>
+                <span className="font-bold text-accent">{stage}</span> {text}
               </p>
             </div>
           ))}
         </div>
-      </Light>
+      </SlideFrame>
     ),
   },
   {
-    title: "At the stop",
-    part: "Solution",
+    title: "Count who is waiting",
+    part: "Our solution",
     body: (
-      <Light title="At the stop: tap, say or swipe, get a ticket">
-        <div className="flex flex-1 items-start justify-center">
-          <Screen src="/pitch/screens/kiosk.jpg" alt="The kiosk screen: tap your card, then say or swipe your stop" width={820} height={461} />
-        </div>
-      </Light>
+      <Step
+        n={1}
+        title="Count who is waiting"
+        panel={<QueueAtStop />}
+        lines={[
+          "Alice taps her bus card at the stop.",
+          "She says her stop, or swipes a hand.",
+          "She gets a number in the line.",
+        ]}
+      />
     ),
   },
   {
-    title: "In the control room",
-    part: "Solution",
+    title: "Send buses where people wait",
+    part: "Our solution",
     body: (
-      <Light title="In the control room: every line, live">
-        <div className="flex flex-1 items-start justify-center">
-          <Screen src="/pitch/screens/dashboard.jpg" alt="The HQ dashboard: people waiting per stop, buses and recommendations" width={760} height={475} />
-        </div>
-      </Light>
+      <Step
+        n={2}
+        title="Send buses where people wait"
+        panel={<HqSeesDemand />}
+        lines={[
+          "The control room sees every line, live.",
+          "A bus is suggested when it would be 70% full, or someone has waited 15 minutes.",
+          "A person says yes; the bus leaves.",
+        ]}
+      />
     ),
   },
   {
-    title: "On every phone",
-    part: "Solution",
+    title: "Tell everyone when the bus comes",
+    part: "Our solution",
     body: (
-      <Light title="On every phone">
-        <div className="flex flex-1 items-start justify-center gap-16">
-          {[
-            { src: "/pitch/screens/join.jpg", alt: "The join page on a phone: pick your stop", label: "Passengers join the line" },
-            { src: "/pitch/screens/bus.jpg", alt: "The driver's page on a phone: pick your bus", label: "Drivers share where the bus is" },
-          ].map((p) => (
-            <figure key={p.src} className="text-center">
-              <Screen src={p.src} alt={p.alt} width={250} height={449} />
-              <figcaption className="mt-3" style={pt(24)}>
-                {p.label}
-              </figcaption>
-            </figure>
-          ))}
-        </div>
-      </Light>
+      <Step
+        n={3}
+        title="Tell everyone when the bus comes"
+        panel={<EveryoneSeesEta />}
+        lines={["The stop shows and says when the bus comes.", "Alice can follow the bus on her phone.", "First in line, first on."]}
+      />
     ),
   },
-  // ── 3 How it works · does it work ─────────────────────────────────────────────
+  // ── 3 How it works · does it work ───────────────────────────────────────────
   {
     title: "How it works",
     part: "How it works",
     body: (
-      <Light title="How it works">
+      <SlideFrame title="How it works">
         <div className="mt-2">
           <JourneyComic />
         </div>
-      </Light>
+      </SlideFrame>
     ),
   },
   {
     title: "Does it work?",
     part: "How it works",
     body: (
-      <Light title="Does it work? What we measured">
-        <div className="grid flex-1 grid-cols-3 gap-12">
-          <Stat value={pitchPercent(N.swipeCorrect, N.swipeTries)} source="Our tests on the board">
+      <SlideFrame title="Does it work? What we measured">
+        <div className="mt-6 grid grid-cols-3 gap-12">
+          <Stat tone="result" value={pitchPercent(N.swipeCorrect, N.swipeTries)} source="Our tests on the board">
             of hand swipes picked the right stop ({pitchValue(N.swipeCorrect)} of {pitchValue(N.swipeTries)})
           </Stat>
-          <Stat value={formatAccuracy(voiceNew)} source="Our model in Edge Impulse">
+          <Stat tone="result" value={formatAccuracy(voiceNew)} source="Our model in Edge Impulse">
             of stop names understood, from a voice it never heard
           </Stat>
-          <Stat value={pitchValue(N.modelRamKb, " KB")} source="Edge Impulse">
+          <Stat tone="result" value={pitchValue(N.modelRamKb, " KB")} source="Edge Impulse">
             of memory runs the voice model on the board, no internet
           </Stat>
         </div>
-        <p className="mt-4 font-bold" style={pt(28)}>
+        <p className="mt-auto font-bold text-accent" style={pt(28)}>
           Now see it for yourself →
         </p>
-      </Light>
+      </SlideFrame>
     ),
   },
-  // ── 4 Demo ────────────────────────────────────────────────────────────────
+  // ── 4 Live demo ────────────────────────────────────────────────────────────
   {
     title: "Live demo",
-    part: "Demo",
+    part: "Live demo",
     body: (
-      <Light title="Now watch it happen">
+      <SlideFrame title="Now watch it happen">
         <div className="grid flex-1 grid-cols-[360px_1fr] items-start gap-12">
           <div>
             <JoinQr size={340} />
@@ -449,52 +463,53 @@ export const SLIDES: readonly Slide[] = [
             </a>
           </div>
         </div>
-      </Light>
+      </SlideFrame>
     ),
   },
-  // ── 5 Conclusion & next ───────────────────────────────────────────────────
+  // ── 5 Conclusion & future work ─────────────────────────────────────────────
   {
     title: "Back to Alice",
-    part: "Conclusion & next",
+    part: "Conclusion & future work",
     body: (
-      <Light title="Today, the bus doesn’t know Alice is waiting. With Tap&Select, it does.">
-        <div className="mt-auto grid grid-cols-[480px_1fr] items-end gap-12">
-          <figure className="overflow-hidden rounded-card border border-line bg-paper [&>svg]:block [&>svg]:w-full">
+      <SlideFrame
+        title={
+          <>
+            Today, the bus doesn&rsquo;t know Alice is waiting.{" "}
+            <span className="text-accent">With Tap&amp;Select, it does.</span>
+          </>
+        }
+      >
+        <div className="mt-auto grid grid-cols-[520px_1fr] items-end gap-12">
+          <Panel>
             <AliceBoards />
-          </figure>
+          </Panel>
           <dl className="space-y-4">
-            <div>
-              <dt className="font-bold" style={pt(24)}>
-                Sense
-              </dt>
-              <dd style={pt(24)}>Every stop counts its line.</dd>
-            </div>
-            <div>
-              <dt className="font-bold" style={pt(24)}>
-                Decide
-              </dt>
-              <dd style={pt(24)}>HQ sends buses where people wait.</dd>
-            </div>
-            <div>
-              <dt className="font-bold" style={pt(24)}>
-                Inform
-              </dt>
-              <dd style={pt(24)}>Everyone knows when the bus comes.</dd>
-            </div>
+            {[
+              ["Count", "Every stop counts its line."],
+              ["Send", "Buses go where people wait."],
+              ["Tell", "Everyone knows when the bus comes."],
+            ].map(([head, text]) => (
+              <div key={head}>
+                <dt className="font-bold text-accent" style={pt(24)}>
+                  {head}
+                </dt>
+                <dd style={pt(24)}>{text}</dd>
+              </div>
+            ))}
           </dl>
         </div>
-      </Light>
+      </SlideFrame>
     ),
   },
   {
-    title: "What's next",
-    part: "Conclusion & next",
+    title: "Future work",
+    part: "Conclusion & future work",
     body: (
-      <Light title="What’s next">
+      <SlideFrame title="Future work">
         <ul className="mt-4 grid flex-1 grid-cols-4 gap-8">
           {NEXT_STEPS.map(({ Icon, head, text }) => (
             <li key={head} className="flex flex-col items-start">
-              <span className="flex h-28 w-28 items-center justify-center rounded-card bg-ink text-paper">
+              <span className="flex h-28 w-28 items-center justify-center rounded-card bg-accent text-paper">
                 <Icon aria-hidden className="h-14 w-14" strokeWidth={1.75} />
               </span>
               <span className="mt-5 block font-bold" style={pt(28)}>
@@ -506,47 +521,49 @@ export const SLIDES: readonly Slide[] = [
             </li>
           ))}
         </ul>
-      </Light>
+      </SlideFrame>
     ),
   },
-  // ── 6 Questions ───────────────────────────────────────────────────────────
+  // ── 6 Questions ────────────────────────────────────────────────────────────
   {
     title: "Questions",
     part: "Questions",
-    dark: true,
     body: (
-      <Dark image="cover">
-        <div className="flex h-full flex-col justify-center">
-          <Title>Questions?</Title>
-          <p className="mt-6 font-bold leading-none" style={pt(72)}>
+      <SlideFrame>
+        <div className="flex flex-1 flex-col justify-center">
+          <RouteBand />
+          <h2 className="mt-8 font-bold leading-none" style={pt(44)}>
+            Questions?
+          </h2>
+          <p className="mt-6 font-bold leading-none text-accent" style={pt(72)}>
             Murakoze.
           </p>
-          <p className="mt-12 opacity-90" style={pt(24)}>
+          <p className="mt-12" style={pt(24)}>
             Tap&amp;Select · {TEAM.join(" · ")}
           </p>
-          <p className="mt-1 opacity-70" style={pt(18)}>
+          <p className="mt-1 text-muted" style={pt(18)}>
             Follow along: tap-and-select.vercel.app/live
           </p>
         </div>
-      </Dark>
+      </SlideFrame>
     ),
   },
   {
     title: "References",
     part: "Questions",
     body: (
-      <Light title="References">
+      <SlideFrame title="References">
         <References from={1} to={half} />
-      </Light>
+      </SlideFrame>
     ),
   },
   {
     title: "References (continued)",
     part: "Questions",
     body: (
-      <Light title="References (continued)">
+      <SlideFrame title="References (continued)">
         <References from={half + 1} to={PITCH_REFERENCES.length} />
-      </Light>
+      </SlideFrame>
     ),
   },
 ];
