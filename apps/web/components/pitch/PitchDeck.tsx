@@ -37,21 +37,15 @@ function isTyping(target: EventTarget | null): boolean {
 
 /** The six parts across the top, the current one marked, so each presenter's hand-off shows. */
 function PartsBar({ slide }: { slide: number }) {
-  const { part, dark } = SLIDES[slide - 1];
+  const { part } = SLIDES[slide - 1];
   return (
-    <ol
-      className={clsx(
-        "pitch-serif absolute inset-x-16 top-5 z-10 flex gap-2 text-[16px]",
-        dark ? "text-white/60" : "text-muted",
-      )}
-      aria-label="Pitch parts"
-    >
+    <ol className="pitch-serif absolute inset-x-16 top-5 z-10 flex gap-2 whitespace-nowrap text-[15px] text-muted" aria-label="Pitch parts">
       {PITCH_PARTS.map((p, i) => (
         <li
           key={p}
           className={clsx(
             "flex-1 border-t-4 pt-1",
-            p === part ? (dark ? "border-white font-bold text-white" : "border-ink font-bold text-ink") : "border-current/30",
+            p === part ? "border-accent font-bold text-ink" : "border-line",
           )}
           aria-current={p === part ? "step" : undefined}
         >
@@ -84,7 +78,7 @@ function PrintPage({ label, number, children }: { label: string; number?: number
           {number ? <PartsBar slide={number} /> : null}
           {children}
           {number ? (
-            <span className={clsx("num absolute right-16 bottom-5 text-[16px]", SLIDES[number - 1].dark ? "text-white/70" : "text-muted")}>
+            <span className="num absolute right-16 bottom-5 text-[16px] text-muted">
               {String(number).padStart(2, "0")} / {COUNT}
             </span>
           ) : null}
@@ -169,12 +163,12 @@ function Presenter() {
         >
           {current.body}
         </section>
-        <span className={clsx("num absolute right-16 bottom-5 text-[16px]", current.dark ? "text-white/70" : "text-muted")}>
+        <span className="num absolute right-16 bottom-5 text-[16px] text-muted">
           {String(slide).padStart(2, "0")} / {COUNT}
         </span>
         <div className="absolute bottom-3 left-16 flex items-center gap-4">
           <PrintButton />
-          <span className={clsx("text-[14px]", current.dark ? "text-white/70" : "text-muted")}>
+          <span className="text-[14px] text-muted">
             ← → or swipe · F fullscreen
           </span>
         </div>

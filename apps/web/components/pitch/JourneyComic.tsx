@@ -2,7 +2,7 @@ import clsx from "clsx";
 import type { ReactNode } from "react";
 import { FLOW_STEPS } from "./content";
 
-// A five-panel comic of one passenger's journey, drawn in the signage style (ink outlines,
+// A five-panel comic of Alice's journey (the passenger in every comic), drawn in the signage style (ink outlines,
 // paper, route colours only where they mean a route). Illustrations, not photos of hardware.
 
 export const INK = "var(--ink)";
@@ -31,7 +31,65 @@ export function Person({ x, hand, children }: { x: number; hand: [number, number
       {children}
       <circle cx={x} cy="60" r="17" fill={SKIN} stroke={INK} strokeWidth="3" />
       <path d={`M${x - 16} 55 a16 14 0 0 1 32 0 a20 6 0 0 0 -32 0`} fill={INK} />
+      <ellipse cx={x - 6} cy="64" rx="2.5" ry="3.3" fill={SKIN} stroke={INK} strokeWidth="1.2" />
+      <circle cx={x - 6} cy="69.5" r="1.8" fill={ALICE_BAG} />
       <circle cx={x + 7} cy="62" r="2" fill={INK} />
+    </g>
+  );
+}
+
+const ALICE_TOP = "var(--accent)";
+const ALICE_BAG = "var(--warn)";
+
+/**
+ * Alice, the passenger in every comic: a woman in a green top and dark skirt, hair in a bun,
+ * a yellow bag on her arm. Same frame as Person (stands at x, reaches toward `hand`).
+ */
+export function Alice({ x, hand, children }: { x: number; hand: [number, number]; children?: ReactNode }) {
+  const [hx, hy] = hand;
+  return (
+    <g>
+      {/* legs and shoes */}
+      <line x1={x - 7} y1="150" x2={x - 8} y2="180" stroke={SKIN} strokeWidth="6" strokeLinecap="round" />
+      <line x1={x + 7} y1="150" x2={x + 8} y2="180" stroke={SKIN} strokeWidth="6" strokeLinecap="round" />
+      <ellipse cx={x - 10} cy="183" rx="7" ry="3.5" fill={INK} />
+      <ellipse cx={x + 10} cy="183" rx="7" ry="3.5" fill={INK} />
+      {/* skirt, then top */}
+      <path d={`M${x - 16} 126 L${x - 24} 158 H${x + 24} L${x + 16} 126 Z`} fill={INK} />
+      <path d={`M${x - 17} 130 V100 a17 18 0 0 1 34 0 V130 Z`} fill={ALICE_TOP} stroke={INK} strokeWidth="2.5" />
+      {/* the arm with the bag (sleeves outlined in ink like the top) */}
+      <path d={`M${x - 13} 98 L${x - 19} 128`} stroke={INK} strokeWidth="11" strokeLinecap="round" />
+      <path d={`M${x - 13} 98 L${x - 19} 128`} stroke={ALICE_TOP} strokeWidth="6.5" strokeLinecap="round" />
+      <path d={`M${x - 26} 130 a7 8 0 0 1 14 0`} fill="none" stroke={INK} strokeWidth="2" />
+      <rect x={x - 30} y="129" width="22" height="18" rx="4" fill={ALICE_BAG} stroke={INK} strokeWidth="2" />
+      {/* the reaching arm */}
+      <path d={`M${x + 12} 96 L${hx} ${hy}`} stroke={INK} strokeWidth="11" strokeLinecap="round" />
+      <path d={`M${x + 12} 96 L${hx} ${hy}`} stroke={ALICE_TOP} strokeWidth="6.5" strokeLinecap="round" />
+      <circle cx={hx} cy={hy} r="5.5" fill={SKIN} stroke={INK} strokeWidth="2" />
+      {children}
+      {/* neck, head, hair in a bun, face */}
+      <rect x={x - 4} y="74" width="8" height="10" fill={SKIN} />
+      <circle cx={x - 5} cy="38" r="9" fill={INK} />
+      <circle cx={x} cy="60" r="16" fill={SKIN} stroke={INK} strokeWidth="3" />
+      <path d={`M${x - 16} 60 a16 16 0 0 1 32 -2 c-6 -4 -12 -5 -18 -3 c-6 2 -10 6 -14 5 Z`} fill={INK} />
+      <path d={`M${x - 16} 58 c-2 6 -1 12 2 16`} fill="none" stroke={INK} strokeWidth="4" strokeLinecap="round" />
+      <ellipse cx={x - 6} cy="64" rx="2.5" ry="3.3" fill={SKIN} stroke={INK} strokeWidth="1.2" />
+      <circle cx={x - 6} cy="69.5" r="1.8" fill={ALICE_BAG} />
+      <circle cx={x + 7} cy="62" r="2" fill={INK} />
+      <path d={`M${x + 5} 57.5 l4 -1.5`} stroke={INK} strokeWidth="1.5" strokeLinecap="round" />
+      <path d={`M${x + 4} 69 q4 2.5 7 -1`} fill="none" stroke={INK} strokeWidth="1.8" strokeLinecap="round" />
+    </g>
+  );
+}
+
+/** Alice's name tag, a dark pill like the ones on the comics. */
+export function AliceTag({ x, y }: { x: number; y: number }) {
+  return (
+    <g>
+      <rect x={x} y={y} width="56" height="24" rx="12" fill={INK} />
+      <text x={x + 28} y={y + 17} textAnchor="middle" fontSize="13" fill={SURFACE} style={SANS}>
+        Alice
+      </text>
     </g>
   );
 }
@@ -52,14 +110,15 @@ export function Kiosk({ screen }: { screen: ReactNode }) {
   );
 }
 
-function TapCard() {
+/** Panel 1: Alice taps her card (also the pitch's cover). */
+export function TapCardPanel() {
   return (
     <svg viewBox="0 0 240 200" role="img" aria-label="A passenger taps a card on the kiosk's card pad">
       <Ground />
       <Kiosk screen={<text x="172" y="65" textAnchor="middle" fontSize="10" fill={INK} style={SANS}>Tap card</text>} />
-      <Person x={78} hand={[150, 128]}>
+      <Alice x={78} hand={[150, 128]}>
         <rect x="140" y="114" width="16" height="24" rx="3" fill={SURFACE} stroke={INK} strokeWidth="2" transform="rotate(-12 148 126)" />
-      </Person>
+      </Alice>
       <path d="M198 116 l10 -6 M200 127 h12 M198 138 l10 6" stroke={INK} strokeWidth="2.5" strokeLinecap="round" />
     </svg>
   );
@@ -78,7 +137,7 @@ function SwipeOrSay() {
           </g>
         }
       />
-      <Person x={70} hand={[142, 84]} />
+      <Alice x={70} hand={[142, 84]} />
       <g className="motion-safe:animate-[comic-swipe_1.6s_ease-out_infinite]">
         <path d="M150 70 h-34 m10 -8 l-10 8 l10 8" fill="none" stroke={R2} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
       </g>
@@ -163,7 +222,7 @@ function BusOnTheWay() {
   );
 }
 
-const PANELS = [TapCard, SwipeOrSay, BoardRecognises, ConfirmTicket, BusOnTheWay];
+const PANELS = [TapCardPanel, SwipeOrSay, BoardRecognises, ConfirmTicket, BusOnTheWay];
 
 /** The five steps as comic panels with the FLOW_STEPS captions. */
 export function JourneyComic({ size = "slide" }: { size?: "slide" | "page" }) {

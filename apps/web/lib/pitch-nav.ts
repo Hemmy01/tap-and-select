@@ -2,7 +2,14 @@
 // Slides are numbered from 1 in the URL hash (/pitch#5) and on screen.
 
 /** The pitch's parts, in speaking order; the bar at the top marks the current one. */
-export const PITCH_PARTS = ["Hook & problem", "Solution", "How it works", "Demo", "Conclusion & next", "Questions"] as const;
+export const PITCH_PARTS = [
+  "Problem statement",
+  "Our solution",
+  "How it works",
+  "Live demo",
+  "Conclusion & future work",
+  "Questions",
+] as const;
 
 export type PitchPart = (typeof PITCH_PARTS)[number];
 
