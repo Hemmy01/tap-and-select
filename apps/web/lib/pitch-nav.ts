@@ -1,9 +1,10 @@
 // Slide navigation for /pitch. Pure: the deck component owns the DOM.
 // Slides are numbered from 1 in the URL hash (/pitch#5) and on screen.
 
-export type PitchSection = "Problem" | "Solution" | "Tech" | "Conclusion";
+/** The pitch's parts, in speaking order; the bar at the top marks the current one. */
+export const PITCH_PARTS = ["Hook & problem", "Solution", "How it works", "Demo", "Conclusion & next", "Questions"] as const;
 
-export const PITCH_SECTIONS: readonly PitchSection[] = ["Problem", "Solution", "Tech", "Conclusion"];
+export type PitchPart = (typeof PITCH_PARTS)[number];
 
 export type DeckAction = { type: "go"; slide: number } | { type: "fullscreen" };
 
@@ -41,11 +42,8 @@ export function actionForKey(key: string, current: number, count: number): DeckA
   }
 }
 
-/**
- * Fill (0..1) of each of the four route-coloured progress segments.
- * Slide 1 of n shows 1/n of the bar; the last slide fills it.
- */
-export function progressSegments(slide: number, count: number, segments = 4): number[] {
-  const progress = count <= 0 ? 0 : clampSlide(slide, count) / count;
-  return Array.from({ length: segments }, (_, i) => Math.min(Math.max(progress * segments - i, 0), 1));
+/** A finger swipe on a touch screen: leftwards is the next slide (+1), rightwards the previous (-1). */
+export function swipeStep(dx: number, dy: number, min = 50): 1 | -1 | null {
+  if (Math.abs(dx) < min || Math.abs(dx) < Math.abs(dy) * 1.5) return null;
+  return dx < 0 ? 1 : -1;
 }

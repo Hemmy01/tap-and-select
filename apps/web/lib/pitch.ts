@@ -2,8 +2,9 @@
 // shows as "—" on the slide until it is measured. Never fill one with a guess.
 // The voice model's accuracy is not here: it comes from content/models.json.
 // swipeCorrect/swipeTries: ml/results/gesture-trials.md (fw 0.3.1 swipes).
-// surveyRespondents/surveyUnsureWhen: our commuter survey, 1–4 Nov 2026 ("What stops you
-// from taking the bus more often?", ticked "Unsure when it will arrive").
+// survey*: our commuter survey, 1–4 Nov 2026 (n = 71). Long waits / unsure when: "What stops
+// you from taking the bus more often?"; to a bus park: "What do you do to be sure you catch a bus?"
+// (walk to a big park, or a moto to a bus park).
 
 import raw from "@/content/pitch.json";
 
@@ -14,8 +15,12 @@ export interface PitchNumbers {
   swipeCorrect: number | null;
   swipeTries: number | null;
   surveyRespondents: number | null;
-  /** Respondents who said not knowing when the bus will come keeps them off it. */
+  /** Ticked "Long waits" as what stops them taking the bus more often. */
+  surveyLongWaits: number | null;
+  /** Ticked "Unsure when it will arrive" as what stops them taking the bus more often. */
   surveyUnsureWhen: number | null;
+  /** To be sure of a bus, walk to a big bus park or take a moto to one. */
+  surveyToBusPark: number | null;
   audienceJoined: number | null;
 }
 

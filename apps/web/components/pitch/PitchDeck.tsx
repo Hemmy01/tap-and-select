@@ -1,14 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useSyncExternalStore, type ReactNode } from "react";
+import clsx from "clsx";
+import { useCallback, useEffect, useRef, useSyncExternalStore, type ReactNode, type TouchEvent } from "react";
 import { PrintButton } from "@/components/about/PrintButton";
-import { actionForKey, progressSegments, slideFromHash } from "@/lib/pitch-nav";
+import { actionForKey, PITCH_PARTS, slideFromHash, swipeStep } from "@/lib/pitch-nav";
 import { SLIDES } from "./slides";
 
 const W = 1280;
 const H = 720;
 const COUNT = SLIDES.length;
-const ROUTE_COLOURS = ["var(--route-1)", "var(--route-2)", "var(--route-3)", "var(--route-4)"];
 
 const noopSubscribe = () => () => {};
 
@@ -35,18 +35,30 @@ function isTyping(target: EventTarget | null): boolean {
   return target instanceof HTMLElement && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName));
 }
 
-function ProgressBar({ slide }: { slide: number }) {
+/** The six parts across the top, the current one marked, so each presenter's hand-off shows. */
+function PartsBar({ slide }: { slide: number }) {
+  const { part, dark } = SLIDES[slide - 1];
   return (
-    <div className="flex h-1.5 gap-1" aria-hidden>
-      {progressSegments(slide, COUNT).map((fill, i) => (
-        <span key={i} className="h-full flex-1 overflow-hidden bg-line">
-          <span
-            className="block h-full transition-[width] duration-200 ease-out motion-reduce:transition-none"
-            style={{ width: `${fill * 100}%`, background: ROUTE_COLOURS[i] }}
-          />
-        </span>
+    <ol
+      className={clsx(
+        "pitch-serif absolute inset-x-16 top-5 z-10 flex gap-2 text-[16px]",
+        dark ? "text-white/60" : "text-muted",
+      )}
+      aria-label="Pitch parts"
+    >
+      {PITCH_PARTS.map((p, i) => (
+        <li
+          key={p}
+          className={clsx(
+            "flex-1 border-t-4 pt-1",
+            p === part ? (dark ? "border-white font-bold text-white" : "border-ink font-bold text-ink") : "border-current/30",
+          )}
+          aria-current={p === part ? "step" : undefined}
+        >
+          {i + 1} · {p}
+        </li>
       ))}
-    </div>
+    </ol>
   );
 }
 
@@ -69,9 +81,10 @@ function PrintPage({ label, number, children }: { label: string; number?: number
     >
       <div style={{ width: W * PRINT_SCALE, height: H * PRINT_SCALE }}>
         <div className="relative bg-white" style={{ width: W, height: H, transform: `scale(${PRINT_SCALE})`, transformOrigin: "top left" }}>
+          {number ? <PartsBar slide={number} /> : null}
           {children}
           {number ? (
-            <span className="num absolute right-16 bottom-5 text-[16px] text-muted">
+            <span className={clsx("num absolute right-16 bottom-5 text-[16px]", SLIDES[number - 1].dark ? "text-white/70" : "text-muted")}>
               {String(number).padStart(2, "0")} / {COUNT}
             </span>
           ) : null}
@@ -122,17 +135,32 @@ function Presenter() {
     return () => window.removeEventListener("keydown", onKey);
   }, [go]);
 
+  // Touch screens and tablets: swipe left or right to move.
+  const touch = useRef<{ x: number; y: number } | null>(null);
+  const onTouchStart = (e: TouchEvent) => {
+    touch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  };
+  const onTouchEnd = (e: TouchEvent) => {
+    const start = touch.current;
+    touch.current = null;
+    if (!start) return;
+    const step = swipeStep(e.changedTouches[0].clientX - start.x, e.changedTouches[0].clientY - start.y);
+    if (step) go(Math.min(Math.max(slide + step, 1), COUNT));
+  };
+
   const current = SLIDES[slide - 1];
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center overflow-hidden bg-ink">
+    <div
+      className="fixed inset-0 flex touch-pan-y items-center justify-center overflow-hidden bg-ink"
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+    >
       <div
         className="relative shrink-0 overflow-hidden bg-paper"
         style={{ width: W, height: H, transform: `scale(${scale})` }}
       >
-        <div className="absolute inset-x-0 top-0 z-10">
-          <ProgressBar slide={slide} />
-        </div>
+        <PartsBar slide={slide} />
         <section
           key={slide}
           className="h-full motion-safe:animate-[slide-in_200ms_ease-out]"
@@ -141,12 +169,14 @@ function Presenter() {
         >
           {current.body}
         </section>
-        <span className="num absolute right-16 bottom-5 text-[16px] text-muted">
+        <span className={clsx("num absolute right-16 bottom-5 text-[16px]", current.dark ? "text-white/70" : "text-muted")}>
           {String(slide).padStart(2, "0")} / {COUNT}
         </span>
         <div className="absolute bottom-3 left-16 flex items-center gap-4">
           <PrintButton />
-          <span className="text-[14px] text-muted">← → move · F fullscreen</span>
+          <span className={clsx("text-[14px]", current.dark ? "text-white/70" : "text-muted")}>
+            ← → or swipe · F fullscreen
+          </span>
         </div>
       </div>
 

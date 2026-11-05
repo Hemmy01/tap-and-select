@@ -47,7 +47,7 @@ export function Bus({ x, y, doorOpen = false }: { x: number; y: number; doorOpen
 }
 
 /** 1 Sense: a short line at the stop; every passenger is counted per destination. */
-function QueueAtStop() {
+export function QueueAtStop() {
   return (
     <svg viewBox="0 0 320 180" role="img" aria-label="Three passengers queue at a kiosk; HQ counts 12 waiting for Remera">
       <Ground />
@@ -72,7 +72,7 @@ function QueueAtStop() {
 }
 
 /** 2 Decide: HQ sees demand per route; the rule flags R2 at 72%. */
-function HqSeesDemand() {
+export function HqSeesDemand() {
   const bars = [
     { route: "R1", color: "var(--route-1)", pct: 0.2 },
     { route: "R2", color: R2, pct: 0.72 },
@@ -130,7 +130,7 @@ function BusReleased() {
 }
 
 /** 4 Inform: the kiosk shows and speaks the ETA; anyone can follow it on /live. */
-function EveryoneSeesEta() {
+export function EveryoneSeesEta() {
   return (
     <svg viewBox="0 0 320 180" role="img" aria-label="The kiosk shows and reads out the ETA, and a passenger follows the bus on the live board on a phone">
       <Ground />
@@ -219,13 +219,13 @@ function CityNetwork() {
 const STORY: { stage: Stage; title: string; detail: string; Drawing: () => ReactNode }[] = [
   {
     stage: "Sense",
-    title: "Jack joins the line",
-    detail: "He taps his card, then says or swipes his stop. The stop counts who is waiting.",
+    title: "Alice joins the line",
+    detail: "A card tap, then the stop said or swiped. The stop counts who is waiting.",
     Drawing: QueueAtStop,
   },
   {
     stage: "Decide",
-    title: "The control room sees him",
+    title: "The control room sees the line",
     detail: "When a bus would be 70% full, or someone has waited 15 minutes, it suggests a bus.",
     Drawing: HqSeesDemand,
   },
@@ -237,7 +237,7 @@ const STORY: { stage: Stage; title: string; detail: string; Drawing: () => React
   },
   {
     stage: "Inform",
-    title: "Jack sees when it comes",
+    title: "Alice sees when it comes",
     detail: "On the stop's screen, read out loud, and on any phone.",
     Drawing: EveryoneSeesEta,
   },
