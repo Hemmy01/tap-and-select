@@ -116,20 +116,13 @@ export const PITCH_REFERENCES: readonly Reference[] = [
   },
   {
     n: 7,
-    author: "O. Paul and P. McSharry.",
-    date: "(2021, May).",
-    title: "Public transportation demand analysis: A case study of metropolitan Lagos",
-    url: "https://arxiv.org/abs/2105.11816",
-  },
-  {
-    n: 8,
     author: "C. Nyandwi.",
     date: "(2026, May 22).",
     title: "Public transport users up by 30,000 in less than a month",
     url: "https://www.newtimes.co.rw/article/35921/news/infrastructure/public-transport-users-up-by-30000-in-less-than-a-month",
   },
   {
-    n: 9,
+    n: 8,
     author: "S. Sang.",
     date: "(2024, Dec. 3).",
     title: "Kigali adopts distance-based fare system for public buses",
