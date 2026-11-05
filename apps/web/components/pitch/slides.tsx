@@ -6,12 +6,11 @@
 // System colours only: ink on paper, red for the problem, green for what we bring and measured,
 // muted for sources. Times New Roman; sizes in points: title 44, main points 24–28, sources 18.
 
-import { CalendarDays, MapPin, Route } from "lucide-react";
+import { CalendarDays, ChartColumnIncreasing, ChevronRight, MapPin, MessageSquareText, Radar, Route, Smartphone } from "lucide-react";
 import Image from "next/image";
-import type { ReactNode } from "react";
-import { EveryoneSeesEta, HqSeesDemand, QueueAtStop } from "./IdeaStoryboard";
+import { Fragment, type ReactNode } from "react";
 import { JourneyComic, TapCardPanel } from "./JourneyComic";
-import { AliceBoards, AliceWaits } from "./StoryPanels";
+import { AliceBoards, AliceWaits, EveryoneCounted } from "./StoryPanels";
 import { formatAccuracy, MODELS } from "@/lib/models";
 import type { PitchPart } from "@/lib/pitch-nav";
 import { PITCH_NUMBERS as N, pitchPercent, pitchValue } from "@/lib/pitch";
@@ -105,13 +104,13 @@ const FIXES = [
 ] as const;
 
 const SENSE_DECIDE_INFORM = [
-  { stage: "1 · Count", text: "who is waiting, at every stop", Drawing: QueueAtStop },
-  { stage: "2 · Send", text: "buses where people wait", Drawing: HqSeesDemand },
-  { stage: "3 · Tell", text: "everyone when the bus comes", Drawing: EveryoneSeesEta },
+  { stage: "Sense", text: "Count who is waiting", Icon: Radar },
+  { stage: "Decide", text: "Release a bus", Icon: ChartColumnIncreasing },
+  { stage: "Inform", text: "Queue number and live ETA", Icon: Smartphone },
 ] as const;
 
 // "What it's worth": both figures are estimates and say so on the slide.
-/** Bus users on a workday, City of Kigali via The New Times (May 2026), ref [7]. */
+/** Bus users on a workday, City of Kigali via The New Times (May 2026), ref [8]. */
 const RIDERS_PER_WORKDAY = 230_000;
 const MOTO_FARE = 500;
 const WORKDAYS = 22;
@@ -119,10 +118,14 @@ const MOTO_MONEY_MILLIONS =
   N.surveyMoto !== null && N.surveyRespondents
     ? Math.round((RIDERS_PER_WORKDAY * (N.surveyMoto / N.surveyRespondents) * MOTO_FARE * WORKDAYS) / 10_000_000) * 10
     : "—";
-const EMPTY_SEATS = 38;
-const FARE_LOW = 300;
-const FARE_HIGH = 600;
-const seatLoss = (fare: number) => (EMPTY_SEATS * fare).toLocaleString("en-US");
+/** Walk or take a moto to a bus park to be sure of a bus: 38 of 71 is 53.5%, shown as 53%. */
+const TO_BUS_PARK_PCT =
+  N.surveyToBusPark !== null && N.surveyRespondents ? `${Math.floor((N.surveyToBusPark / N.surveyRespondents) * 100)}%` : "—";
+const EMPTY_SEATS_LOW = 26;
+const EMPTY_SEATS_HIGH = 30;
+/** A long-route fare (the 25 km fare is 855 RWF), ref [9]. */
+const LONG_FARE = 800;
+const seatLoss = (seats: number) => (seats * LONG_FARE).toLocaleString("en-US");
 
 /** Voice model on a voice it never heard (Edge Impulse test set). */
 const voiceNew = MODELS.voice.testAccuracy;
@@ -306,20 +309,56 @@ export const SLIDES: readonly Slide[] = [
     part: "Our solution",
     body: (
       <SlideFrame title="Our solution: Tap&Select">
-        <p style={pt(28)}>
-          Every bus stop counts who is waiting, <span className="font-bold text-accent">so buses go where people are.</span>
-        </p>
-        <div className="mt-auto grid grid-cols-3 gap-8">
-          {SENSE_DECIDE_INFORM.map(({ stage, text, Drawing }) => (
-            <div key={stage}>
-              <Panel>
-                <Drawing />
-              </Panel>
-              <p className="mt-3 leading-snug" style={pt(24)}>
-                <span className="font-bold text-accent">{stage}</span> {text}
-              </p>
-            </div>
+        <div className="mt-4 grid grid-cols-[1fr_auto_1fr_auto_1fr] items-stretch gap-4">
+          {SENSE_DECIDE_INFORM.map(({ stage, text, Icon }, i) => (
+            <Fragment key={stage}>
+              {i > 0 ? <ChevronRight aria-hidden className="h-10 w-10 self-center text-accent" strokeWidth={3} /> : null}
+              <div className="flex flex-col items-center rounded-card border border-line bg-surface px-6 py-8 text-center">
+                <span className="flex h-24 w-24 items-center justify-center rounded-full bg-ink text-paper">
+                  <Icon aria-hidden className="h-12 w-12" strokeWidth={1.75} />
+                </span>
+                <p className="mt-5 font-bold" style={pt(36)}>
+                  {stage}
+                </p>
+                <p className="mt-2 leading-snug" style={pt(24)}>
+                  {text}
+                </p>
+              </div>
+            </Fragment>
           ))}
+        </div>
+        <div className="mt-auto rounded-card border border-accent bg-surface px-8 py-5">
+          <p className="font-bold leading-snug" style={pt(28)}>
+            Demand-based scheduling cut waiting by up to <span className="text-accent">80%</span> in simulation
+          </p>
+          <p className="mt-1 text-muted" style={pt(18)}>
+            O. Paul &amp; P. McSharry (2021), Lagos bus rapid transit [7]
+          </p>
+        </div>
+      </SlideFrame>
+    ),
+  },
+  {
+    title: "Everyone exists now",
+    part: "Our solution",
+    body: (
+      <SlideFrame title="Alice exists now. So does everyone at the bus stop.">
+        <div className="mt-2 grid flex-1 grid-cols-[700px_1fr] items-center gap-12">
+          <Panel>
+            <EveryoneCounted />
+          </Panel>
+          <div>
+            <p className="leading-snug" style={pt(28)}>
+              Every person waiting is <span className="font-bold text-accent">counted and seen</span>.
+            </p>
+            <p className="mt-8 font-bold uppercase tracking-[0.08em] text-muted" style={pt(18)}>
+              Inclusion
+            </p>
+            <p className="mt-2 flex items-start gap-4 leading-snug" style={pt(26)}>
+              <MessageSquareText aria-hidden className="mt-1 h-9 w-9 shrink-0 text-accent" strokeWidth={1.75} />
+              <span>SMS updates are on our roadmap, so no smartphone is needed.</span>
+            </p>
+          </div>
         </div>
       </SlideFrame>
     ),
@@ -415,8 +454,8 @@ export const SLIDES: readonly Slide[] = [
         <div className="mt-2 grid flex-1 grid-cols-2 gap-16">
           <div className="flex flex-col">
             <p className="leading-snug" style={pt(24)}>
-              <span className="font-bold text-danger">{pitchPercent(N.surveyMoto, N.surveyRespondents)}</span> of commuters
-              we asked take a moto just to reach a bus park and be sure of a bus
+              <span className="font-bold text-danger">{TO_BUS_PARK_PCT}</span> of commuters we asked go to a bus park, on
+              foot or by moto, just to be sure of a bus; {pitchPercent(N.surveyMoto, N.surveyRespondents)} pay a moto
               <Cite n={4} />
             </p>
             <p className="mt-6 whitespace-nowrap font-bold leading-none tabular-nums text-accent" style={pt(44)}>
@@ -426,24 +465,28 @@ export const SLIDES: readonly Slide[] = [
               a month could stay in workers&rsquo; pockets
             </p>
             <p className="mt-auto border-t border-line pt-2 leading-snug text-muted" style={pt(18)}>
-              Estimate: {RIDERS_PER_WORKDAY.toLocaleString("en-US")} bus riders a workday [7] ×{" "}
+              Estimate: {RIDERS_PER_WORKDAY.toLocaleString("en-US")} bus riders a workday [8] ×{" "}
               {pitchPercent(N.surveyMoto, N.surveyRespondents)} × {MOTO_FARE} RWF × {WORKDAYS} workdays
             </p>
           </div>
           <div className="flex flex-col">
             <p className="leading-snug" style={pt(24)}>
-              A bus that leaves with <span className="font-bold text-danger">{EMPTY_SEATS} empty seats</span>, at a fare of{" "}
-              {FARE_LOW}–{FARE_HIGH} RWF
-              <Cite n={8} />, loses
+              A bus that leaves with{" "}
+              <span className="font-bold text-danger">
+                {EMPTY_SEATS_LOW}–{EMPTY_SEATS_HIGH} empty seats
+              </span>{" "}
+              on a long route (about {LONG_FARE} RWF a seat
+              <Cite n={9} />) loses
             </p>
             <p className="mt-6 whitespace-nowrap font-bold leading-none tabular-nums text-accent" style={pt(44)}>
-              {seatLoss(FARE_LOW)}–{seatLoss(FARE_HIGH)} RWF
+              ≈ 20,000–25,000 RWF
             </p>
             <p className="mt-3 leading-snug" style={pt(24)}>
               every trip. <span className="font-bold">We fill those seats.</span>
             </p>
             <p className="mt-auto border-t border-line pt-2 leading-snug text-muted" style={pt(18)}>
-              Estimate: {EMPTY_SEATS} seats × {FARE_LOW}–{FARE_HIGH} RWF (fares run 182–855 RWF by distance)
+              Estimate: {EMPTY_SEATS_LOW}–{EMPTY_SEATS_HIGH} seats × {LONG_FARE} RWF = {seatLoss(EMPTY_SEATS_LOW)}–
+              {seatLoss(EMPTY_SEATS_HIGH)} RWF (fares run 182–855 RWF by distance)
             </p>
           </div>
         </div>
