@@ -5,6 +5,8 @@
   "swipeCorrect": 73,
   "swipeTries": 80,
   "surveyRespondents": 71,
+  "surveyLongWaits": 58,
   "surveyUnsureWhen": 43,
+  "surveyToBusPark": 38,
   "audienceJoined": null
 }

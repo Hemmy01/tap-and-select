@@ -21,7 +21,8 @@ export interface Reference {
   /** "(2022, Aug. 10)" */
   date: string;
   title: string;
-  url: string;
+  /** null for our own unpublished data (the survey). */
+  url: string | null;
 }
 
 export const REFERENCES: readonly Reference[] = [
@@ -73,59 +74,45 @@ export const REFERENCES: readonly Reference[] = [
 export const PITCH_REFERENCES: readonly Reference[] = [
   {
     n: 1,
-    author: "W. Buningwire.",
-    date: "(2022, Aug. 10).",
-    title: "Kigali struggling to bridge gap in public transport",
-    url: "https://www.ktpress.rw/2022/08/kigali-struggling-to-bridge-gap-in-public-transport/",
-  },
-  {
-    n: 2,
-    author: "City Population.",
-    date: "(2023).",
-    title: "City of Kigali: population statistics (NISR censuses 2012 and 2022)",
-    url: "https://citypopulation.de/en/rwanda/admin/1__kigali/",
-  },
-  {
-    n: 3,
-    author: "C. Nyandwi.",
-    date: "(2026, Apr. 24).",
-    title: "Rwanda: Kigali sees 30 percent surge in bus passengers after reforms",
-    url: "https://allafrica.com/stories/202604240196.html",
-  },
-  {
-    n: 4,
-    author: "The New Times.",
-    date: "(2026, Jun. 29).",
-    title: "Rwanda: Kigali plans to double public transport use in 10 years",
-    url: "https://allafrica.com/stories/202606290083.html",
-  },
-  {
-    n: 5,
-    author: "A. Ishimwe.",
-    date: "(2025, Dec. 9).",
-    title: "Rwanda: Kigali commuters hail new public transport model",
-    url: "https://allafrica.com/stories/202512090228.html",
-  },
-  {
-    n: 6,
-    author: "The New Times.",
-    date: "(2025, Jan. 21).",
-    title: "Rwanda: What commuters make of Kigali's scheduled public transport system",
-    url: "https://allafrica.com/stories/202501210080.html",
-  },
-  {
-    n: 7,
     author: "J. Scott, L. Mashego, V. Neugebauer and M. Marutha.",
     date: "(2023, Mar. 27).",
     title: "Beyond guesswork: A data-driven path to better public-bus-system planning in Kigali",
     url: "https://cenfri.org/articles/beyond-guesswork-a-data-driven-path-to-better-public-bus-system-planning-in-kigali/",
   },
   {
-    n: 8,
-    author: "Kigalian.",
-    date: "(2017, Aug.).",
-    title: "Tap&Go and its loopholes",
-    url: "https://www.kigalian.com/technology/2017/08/tapgo-and-its-loopholes/",
+    n: 2,
+    author: "C. Nyandwi.",
+    date: "(2026, Apr. 24).",
+    title: "Rwanda: Kigali sees 30 percent surge in bus passengers after reforms",
+    url: "https://allafrica.com/stories/202604240196.html",
+  },
+  {
+    n: 3,
+    author: "The New Times.",
+    date: "(2026, Jun. 29).",
+    title: "Rwanda: Kigali plans to double public transport use in 10 years",
+    url: "https://allafrica.com/stories/202606290083.html",
+  },
+  {
+    n: 4,
+    author: "Tap&Select team.",
+    date: "(2026, Nov. 1–4).",
+    title: "Survey of commuters in Kigali, n = 71",
+    url: null,
+  },
+  {
+    n: 5,
+    author: "C. Nyandwi.",
+    date: "(2026, Apr. 27).",
+    title: "Public transport: EcoFleet trials real-time bus tracking",
+    url: "https://www.newtimes.co.rw/article/35202/news/technology/public-transport-ecofleet-trials-real-time-bus-tracking",
+  },
+  {
+    n: 6,
+    author: "A-SAC Group Ltd.",
+    date: "(2026).",
+    title: "Gerayo App [Mobile app]",
+    url: "https://apps.apple.com/us/app/-/id6769424805",
   },
 ];
 
@@ -138,10 +125,18 @@ export function referenceYear(r: Reference): string {
 export function ReferenceLine({ reference: r }: { reference: Reference }) {
   return (
     <>
-      <span className="num">[{r.n}]</span> {r.author} {r.date} <em>{r.title}</em> [Online]. Available:{" "}
-      <a href={r.url} className="break-all underline underline-offset-2" target="_blank" rel="noreferrer">
-        {r.url}
-      </a>
+      <span className="num">[{r.n}]</span> {r.author} {r.date} <em>{r.title}</em>
+      {r.url ? (
+        <>
+          {" "}
+          [Online]. Available:{" "}
+          <a href={r.url} className="break-all underline underline-offset-2" target="_blank" rel="noreferrer">
+            {r.url}
+          </a>
+        </>
+      ) : (
+        " [Unpublished raw data]."
+      )}
     </>
   );
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { actionForKey, clampSlide, progressSegments, slideFromHash } from "@/lib/pitch-nav";
+import { actionForKey, clampSlide, slideFromHash, swipeStep } from "@/lib/pitch-nav";
 
 describe("pitch navigation", () => {
   it("reads the slide from the hash and clamps it", () => {
@@ -25,11 +25,10 @@ describe("pitch navigation", () => {
     expect(actionForKey("x", 7, 14)).toBeNull();
   });
 
-  it("fills the four progress segments in order", () => {
-    expect(progressSegments(14, 14)).toEqual([1, 1, 1, 1]);
-    expect(progressSegments(7, 14)).toEqual([1, 1, 0, 0]);
-    const first = progressSegments(1, 14);
-    expect(first[0]).toBeCloseTo(4 / 14);
-    expect(first.slice(1)).toEqual([0, 0, 0]);
+  it("turns a horizontal swipe into next or previous", () => {
+    expect(swipeStep(-120, 10)).toBe(1);
+    expect(swipeStep(120, -20)).toBe(-1);
+    expect(swipeStep(-30, 0)).toBeNull();
+    expect(swipeStep(-80, 120)).toBeNull();
   });
 });
