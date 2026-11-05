@@ -100,6 +100,25 @@ begin
                      '16 and the dispatch thresholds');
 end $$;
 
+do $$
+declare
+  v jsonb;
+  w jsonb;
+begin
+  -- Recompute keeps the phone's place; after Reset demo the same phone can pick another stop.
+  update config set value = 1 where key = 'audience_join_open';
+  update config set value = 1000 where key = 'audience_join_max';
+  v := pg_temp.as_anon_join('REM', 'resetter12phone');
+  perform run_dispatch();
+  w := pg_temp.as_anon_join('KIM', 'resetter12phone');
+  perform pg_temp.ok(w->>'status' = 'duplicate' and w->>'code' = v->>'code', '17 after Recompute the phone keeps its ticket');
+
+  perform reset_demo();
+  w := pg_temp.as_anon_join('KIM', 'resetter12phone');
+  perform pg_temp.ok(w->>'status' = 'created' and w->>'destination' = 'KIM', '18 after Reset demo the phone picks another stop');
+  perform pg_temp.ok(w->>'code' = 'R3-001', '19 numbering starts again (why the phone pins its ticket by time)');
+end $$;
+
 select n, check_name as passed from results order by n;
 
 rollback;
